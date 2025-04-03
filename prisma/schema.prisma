@@ -1,0 +1,123 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  ADMINISTRATOR
+  OWNER
+  MANAGER
+  EMPLOYEE
+  CUSTOMER
+}
+
+model Address {
+  id           String  @id @default(cuid())
+  zipCode      String
+  street       String
+  neighborhood String
+  city         String
+  state        String
+  number       String?
+  complement   String?
+
+  userId       String?     @unique
+  user         User?       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  enterpriseId String?     @unique
+  enterprise   Enterprise? @relation(fields: [enterpriseId], references: [id], onDelete: Cascade)
+}
+
+model EnterpriseOwner {
+  userId       String
+  enterpriseId String
+
+  user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  enterprise Enterprise @relation(fields: [enterpriseId], references: [id], onDelete: Cascade)
+
+  @@id([userId, enterpriseId])
+}
+
+model Enterprise {
+  id       String @id @default(cuid())
+  name     String
+  email    String
+  cpfCnpj  String
+  whatsApp String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  address Address?
+
+  owners  EnterpriseOwner[]
+  members User[]            @relation("members")
+}
+
+model User {
+  id                 String   @id @default(cuid())
+  name               String
+  email              String
+  password           String
+  whatsApp           String
+  cpfCnpj            String
+  role               UserRole
+  status             Boolean  @default(true)
+  hasAcceptedTerms   Boolean  @default(true)
+  isTwoFactorEnabled Boolean  @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  ownerId String?
+  owner   User?   @relation("users", fields: [ownerId], references: [id])
+  users   User[]  @relation("users")
+
+  address               Address?
+  twoFactorConfirmation TwoFactorConfirmation?
+
+  enterpriseOwners   EnterpriseOwner[]
+  enterpriseBelongId String?
+  enterpriseBelong   Enterprise?       @relation("members", fields: [enterpriseBelongId], references: [id])
+
+  @@unique([email, role], name: "unique_email_per_role")
+}
+
+model VerificationToken {
+  id      String   @id @default(cuid())
+  email   String
+  token   String   @unique
+  expires DateTime
+
+  @@unique([email, token])
+}
+
+model PasswordResetToken {
+  id      String   @id @default(cuid())
+  email   String
+  token   String   @unique
+  expires DateTime
+
+  @@unique([email, token])
+}
+
+model TwoFactorToken {
+  id      String   @id @default(cuid())
+  email   String
+  token   String   @unique
+  expires DateTime
+
+  @@unique([email, token])
+}
+
+model TwoFactorConfirmation {
+  id String @id @default(cuid())
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId])
+}
