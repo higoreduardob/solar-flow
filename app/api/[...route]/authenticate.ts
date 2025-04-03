@@ -20,6 +20,8 @@ import {
   forgotPasswordSchema,
   resetPasswordSchema,
   signInSchema,
+  updatePasswordSchema,
+  updateSchema,
 } from '@/features/auth/schema'
 
 const app = new Hono()
@@ -249,6 +251,134 @@ const app = new Hono()
       })
 
       return c.json({ success: 'Senha redefinida com sucesso' }, 200)
+    },
+  )
+  .patch(
+    '/:id/update-password',
+    verifyAuth(),
+    zValidator('param', z.object({ id: z.string().optional() })),
+    zValidator('json', updatePasswordSchema),
+    async (c) => {
+      const auth = c.get('authUser')
+      const { id } = c.req.valid('param')
+      const validatedFields = c.req.valid('json')
+
+      if (!validatedFields) return c.json({ error: 'Campos inválidos' }, 400)
+      const { password, newPassword, repeatPassword } = validatedFields
+
+      if (newPassword !== repeatPassword)
+        return c.json({ error: 'Senhas devem ser iguais' }, 400)
+
+      if (!id) {
+        return c.json({ error: 'Identificador não encontrado' }, 400)
+      }
+
+      if (!auth.token?.sub) {
+        return c.json({ error: 'Usuário não autorizado' }, 401)
+      }
+
+      if (auth.token.sub !== id) {
+        return c.json({ error: 'Usuário não autorizado' }, 401)
+      }
+
+      const user = await db.user.findUnique({
+        where: { id: auth.token.sub },
+      })
+      if (!user) return c.json({ error: 'Usuário não autorizado' }, 401)
+
+      if (!user.password) {
+        return c.json({ error: 'Informações inválidas' }, 400)
+      }
+
+      const isConfirm = bcrypt.compareSync(password, user.password)
+      if (!isConfirm) {
+        return c.json({ error: 'Usuário não autorizado' }, 401)
+      }
+
+      const hashedPassword = await bcrypt.hash(newPassword, 10)
+      await db.user.update({
+        where: { id: user.id },
+        data: { password: hashedPassword },
+      })
+
+      return c.json({ success: 'Senha alterada' }, 200)
+    },
+  )
+  .patch(
+    '/:id/update-2fa',
+    verifyAuth(),
+    zValidator('param', z.object({ id: z.string().optional() })),
+    async (c) => {
+      const auth = c.get('authUser')
+      const { id } = c.req.valid('param')
+
+      if (!id) {
+        return c.json({ error: 'Identificador não encontrado' }, 400)
+      }
+
+      if (!auth.token?.sub) {
+        return c.json({ error: 'Usuário não autorizado' }, 401)
+      }
+
+      if (auth.token.sub !== id) {
+        return c.json({ error: 'Usuário não autorizado' }, 401)
+      }
+
+      const user = await db.user.findUnique({
+        where: { id: auth.token.sub },
+      })
+      if (!user) return c.json({ error: 'Usuário não autorizado' }, 401)
+
+      await db.user.update({
+        where: { id: user.id },
+        data: {
+          isTwoFactorEnabled: !user.isTwoFactorEnabled,
+        },
+      })
+
+      return c.json({ success: 'Autenticação de dois fatores atualizada' }, 200)
+    },
+  )
+  .patch(
+    '/:id',
+    verifyAuth(),
+    zValidator('param', z.object({ id: z.string().optional() })),
+    zValidator('json', updateSchema),
+    async (c) => {
+      const auth = c.get('authUser')
+      const { id } = c.req.valid('param')
+      const validatedFields = c.req.valid('json')
+
+      if (!validatedFields) return c.json({ error: 'Campos inválidos' }, 400)
+      const { address, ...values } = validatedFields
+
+      if (!id) {
+        return c.json({ error: 'Identificador não encontrado' }, 400)
+      }
+
+      if (!auth.token?.sub || auth.token.sub !== id) {
+        return c.json({ error: 'Usuário não autorizado' }, 401)
+      }
+
+      const user = await db.user.findUnique({
+        where: { id: auth.token.sub },
+      })
+      if (!user) return c.json({ error: 'Usuário não autorizado' }, 401)
+
+      await db.user.update({
+        where: { id: user.id },
+        data: {
+          ...values,
+          address: {
+            upsert: {
+              create: { ...address },
+              update: { ...address },
+            },
+          },
+        },
+      })
+
+      return c.json({ success: 'Dados pessoais atualizados' }, 200)
     },
   )
 

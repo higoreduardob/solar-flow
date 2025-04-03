@@ -26,12 +26,11 @@ export const passwordSchema = z
     {
       message:
         'A senha deve conter pelo menos 6 caracteres, incluindo maiúsculas, números e símbolos',
-    }
+    },
   )
 
 export const cpfCnpjSchema = z
   .string()
-  .nullish()
   .transform((value) => removeMask(value))
   .refine((value) => value === '' || /^\d{11,14}$/.test(value), {
     message: 'CPF/CNPJ deve conter entre 11 e 14 dígitos numéricos',
@@ -44,7 +43,7 @@ export const cpfCnpjSchema = z
       if (digits === 11) return validateCPF(value)
       return validateCNPJ(value)
     },
-    { message: 'Documento inválido' }
+    { message: 'Documento inválido' },
   )
 
 export const addressSchema = z.object({
