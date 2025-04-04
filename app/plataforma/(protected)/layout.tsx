@@ -9,7 +9,7 @@ import { UserRole } from '@prisma/client'
 
 import { useCurrentUser } from '@/features/auth/hooks/use-current-user'
 
-import { DialogProvider } from '@/app/gestao/_providers/dialog-provider'
+import { DialogProvider } from '@/app/plataforma/_providers/dialog-provider'
 
 import { Skeleton } from '@/components/ui/skeleton'
 

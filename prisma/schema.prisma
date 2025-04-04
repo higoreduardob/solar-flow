@@ -55,6 +55,11 @@ model Enterprise {
 
   owners  EnterpriseOwner[]
   members User[]            @relation("members")
+  users   User[]            @relation("selectedEnterprise")
+
+  categories Category[]
+  measures   Measure[]
+  materials  Material[]
 }
 
 model User {
@@ -82,6 +87,9 @@ model User {
   enterpriseOwners   EnterpriseOwner[]
   enterpriseBelongId String?
   enterpriseBelong   Enterprise?       @relation("members", fields: [enterpriseBelongId], references: [id])
+
+  selectedEnterprise String?
+  enterprise         Enterprise? @relation("selectedEnterprise", fields: [selectedEnterprise], references: [id])
 
   @@unique([email, role], name: "unique_email_per_role")
 }
@@ -120,4 +128,59 @@ model TwoFactorConfirmation {
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId])
+}
+
+model Category {
+  id     String  @id @default(cuid())
+  name   String
+  status Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  enterpriseId String
+  enterprise   Enterprise @relation(fields: [enterpriseId], references: [id], onDelete: Cascade)
+
+  materials Material[]
+
+  @@unique([name, enterpriseId], name: "unique_name_per_enterprise")
+}
+
+model Measure {
+  id     String  @id @default(cuid())
+  name   String
+  status Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  enterpriseId String
+  enterprise   Enterprise @relation(fields: [enterpriseId], references: [id], onDelete: Cascade)
+
+  materials Material[]
+
+  @@unique([name, enterpriseId], name: "unique_name_per_enterprise")
+}
+
+model Material {
+  id       String  @id @default(cuid())
+  name     String
+  amount   Int
+  stock    Int
+  supplier String?
+  obs      String?
+  status   Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  enterpriseId String
+  enterprise   Enterprise @relation(fields: [enterpriseId], references: [id], onDelete: Cascade)
+
+  categoryId String?
+  category   Category? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  measureId  String?
+  measure    Measure?  @relation(fields: [measureId], references: [id], onDelete: SetNull)
+
+  @@unique([name, enterpriseId], name: "unique_name_per_enterprise")
 }

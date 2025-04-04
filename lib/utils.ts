@@ -85,3 +85,28 @@ export function statusFilter(status?: string) {
   const regex = /^\s*(true|1|on)\s*$/i
   return regex.test(status)
 }
+
+export function convertAmountFromMiliunits(amount: number | null) {
+  if (!amount) return 0
+
+  return amount / 1000
+}
+
+export function convertAmountToMiliunits(
+  amount: number | string | undefined | null,
+) {
+  if (!amount) return 0
+
+  const currAmount =
+    typeof amount === 'string' ? parseFloat(amount.replace(/,/g, '.')) : amount
+
+  return Math.round(currAmount * 1000)
+}
+
+export function formatCurrency(value: number) {
+  return new Intl.NumberFormat('pt-BR', {
+    style: 'currency',
+    currency: 'BRL',
+    minimumFractionDigits: 2,
+  }).format(value)
+}

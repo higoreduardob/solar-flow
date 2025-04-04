@@ -6,6 +6,7 @@ import { auth } from '@/auth'
 
 import { Toaster } from '@/components/ui/sonner'
 import { QueryProvider } from '@/providers/query-provider'
+import { ThemeProvider } from '@/providers/theme-provider'
 
 import './globals.css'
 
@@ -25,11 +26,18 @@ export default async function RootLayout({
 
   return (
     <SessionProvider session={session}>
-      <html lang="pt-BR">
+      <html lang="pt-BR" suppressHydrationWarning>
         <body className={inter.className}>
           <QueryProvider>
-            <Toaster />
-            {children}
+            <ThemeProvider
+              attribute="class"
+              defaultTheme="system"
+              enableSystem
+              disableTransitionOnChange
+            >
+              <Toaster />
+              {children}
+            </ThemeProvider>
           </QueryProvider>
         </body>
       </html>

@@ -46,7 +46,7 @@ export default function SignInPage() {
     if (redirect) {
       router.push(redirect)
     }
-  }, [redirect])
+  }, [redirect, router])
 
   return (
     <section>

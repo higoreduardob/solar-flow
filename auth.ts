@@ -43,6 +43,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         session.user.address = token.address
         session.user.isTwoFactorEnabled = token.isTwoFactorEnabled
         session.user.status = token.status
+        session.user.selectedEnterprise = token.selectedEnterprise
       }
 
       return session
@@ -64,6 +65,12 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
               complement: true,
             },
           },
+          enterprise: {
+            select: {
+              id: true,
+              name: true,
+            },
+          },
         },
       })
 
@@ -76,6 +83,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       token.address = existingUser.address!
       token.isTwoFactorEnabled = existingUser.isTwoFactorEnabled
       token.status = existingUser.status
+      token.selectedEnterprise = existingUser.enterprise
 
       return token
     },

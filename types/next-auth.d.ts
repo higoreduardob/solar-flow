@@ -11,6 +11,10 @@ export type ExtendedUser = DefaultSession['user'] & {
   whatsApp: string | null
   address: AddressFormValues
   status: boolean
+  selectedEnterprise: {
+    id: string
+    name: string
+  } | null
 }
 
 declare module 'next-auth' {
@@ -29,5 +33,9 @@ declare module '@auth/core/jwt' {
     whatsApp: string | null
     address: AddressFormValues
     status: boolean
+    selectedEnterprise: {
+      id: string
+      name: string
+    } | null
   }
 }

@@ -146,6 +146,11 @@ const app = new Hono()
           },
         })
 
+        await tx.user.update({
+          where: { id: existingUser.id },
+          data: { selectedEnterprise: data.id },
+        })
+
         await tx.enterpriseOwner.createMany({
           data: [{ userId: existingUser.id, enterpriseId: data.id }],
         })
