@@ -15,7 +15,7 @@ function AuthLayoutComponent({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (status === 'authenticated' && user) {
-      router.push('/plataforma')
+      router.push('/gestao')
     }
   }, [user, status, router])
 
