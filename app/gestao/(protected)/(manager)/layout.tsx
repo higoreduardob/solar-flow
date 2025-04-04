@@ -50,6 +50,7 @@ const USER_ITEMS: NavUserProps[] = [
   },
 ]
 
+// TODO: Get user values
 export default function Layout({ children }: { children: React.ReactNode }) {
   return (
     <SidebarProvider>
