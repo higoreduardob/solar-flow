@@ -9,6 +9,8 @@ import { UserRole } from '@prisma/client'
 
 import { useCurrentUser } from '@/features/auth/hooks/use-current-user'
 
+import { DialogProvider } from '@/app/gestao/_providers/dialog-provider'
+
 import { Skeleton } from '@/components/ui/skeleton'
 
 function ProtectedLayoutComponent({ children }: { children: React.ReactNode }) {
@@ -36,7 +38,12 @@ function ProtectedLayoutComponent({ children }: { children: React.ReactNode }) {
     )
   }
 
-  return <>{children}</>
+  return (
+    <>
+      <DialogProvider />
+      {children}
+    </>
+  )
 }
 
 const ProtectedLayout = dynamic(

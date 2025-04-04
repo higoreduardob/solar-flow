@@ -8,6 +8,7 @@ import { zValidator } from '@hono/zod-validator'
 import { UserRole } from '@prisma/client'
 
 import { db } from '@/lib/db'
+import { statusFilter } from '@/lib/utils'
 import { sendPasswordSignInEmail } from '@/lib/mail'
 import { generateVerificationToken } from '@/lib/helpers'
 
@@ -82,7 +83,7 @@ const app = new Hono()
     },
   )
   .post(
-    '/sign-up-interprise',
+    '/sign-up-enterprise',
     verifyAuth(),
     zValidator('json', insertEnterpriseSchema),
     zValidator(
@@ -166,11 +167,14 @@ const app = new Hono()
       'query',
       z.object({
         role: z.nativeEnum(UserRole).optional(),
+        status: z.string().optional(),
       }),
     ),
     async (c) => {
       const auth = c.get('authUser')
-      const { role } = c.req.valid('query')
+      const { role, status: statusValue } = c.req.valid('query')
+
+      const status = statusFilter(statusValue)
 
       if (!auth.token?.sub) {
         return c.json({ error: 'Usuário não autorizado' }, 401)
@@ -185,11 +189,13 @@ const app = new Hono()
 
       const roles: UserRole[] = role
         ? [role]
-        : ['OWNER', 'EMPLOYEE', 'MANAGER', 'CUSTOMER']
+        : ['ADMINISTRATOR', 'OWNER', 'EMPLOYEE', 'MANAGER', 'CUSTOMER']
 
       const users = await db.user.findMany({
         where: {
+          NOT: { id: user.id },
           role: { in: roles },
+          status,
         },
         include: { address: true },
       })

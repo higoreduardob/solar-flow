@@ -1,3 +1,5 @@
+import { UserRole } from '@prisma/client'
+
 export function translatePasswordOptionsProps(option: PasswordOptionsProps) {
   switch (option) {
     case 'STRONG':
@@ -6,5 +8,20 @@ export function translatePasswordOptionsProps(option: PasswordOptionsProps) {
       return 'Bom'
     default:
       return 'Fraca'
+  }
+}
+
+export function translateUserRole(role: UserRole) {
+  switch (role) {
+    case 'ADMINISTRATOR':
+      return 'Administrador'
+    case 'OWNER':
+      return 'Proprietário'
+    case 'MANAGER':
+      return 'Gerente'
+    case 'EMPLOYEE':
+      return 'Colaborador'
+    default:
+      return 'Cliente'
   }
 }
