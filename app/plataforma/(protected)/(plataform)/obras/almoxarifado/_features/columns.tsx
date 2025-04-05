@@ -57,46 +57,22 @@ export const columns: ColumnDef<ResponseType>[] = [
   },
   {
     accessorKey: 'fornecedor',
-    header: ({ column }) => {
-      return (
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
-        >
-          Fornecedor
-          <ArrowUpDown className="ml-2 h-4 w-4" />
-        </Button>
-      )
+    header: () => {
+      return <Button variant="ghost">Fornecedor</Button>
     },
     cell: ({ row }) => row.original.supplier,
   },
   {
     accessorKey: 'preço',
-    header: ({ column }) => {
-      return (
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
-        >
-          Preço
-          <ArrowUpDown className="ml-2 h-4 w-4" />
-        </Button>
-      )
+    header: () => {
+      return <Button variant="ghost">Preço</Button>
     },
     cell: ({ row }) => formatCurrency(row.original.amount),
   },
   {
     accessorKey: 'estoque',
-    header: ({ column }) => {
-      return (
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
-        >
-          Estoque
-          <ArrowUpDown className="ml-2 h-4 w-4" />
-        </Button>
-      )
+    header: () => {
+      return <Button variant="ghost">Estoque</Button>
     },
     cell: ({ row }) => (
       <p>

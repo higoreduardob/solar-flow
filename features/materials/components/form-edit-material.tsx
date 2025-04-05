@@ -1,8 +1,12 @@
 import { convertAmountToMiliunits } from '@/lib/utils'
 
-import { InsertMaterialFormValues } from '@/features/materials/schema'
+import {
+  InsertMaterialFormValues,
+  InsertMaterialSchema,
+} from '@/features/materials/schema'
 
 import { useConfirm } from '@/hooks/use-confirm'
+import { useUploadFile } from '@/features/common/api/use-upload-file'
 import { useGetMaterial } from '@/features/materials/api/use-get-material'
 import { useEditMaterial } from '@/features/materials/api/use-edit-material'
 import { useOpenMaterial } from '@/features/materials/hooks/use-open-material'
@@ -23,11 +27,13 @@ export const FormEditMaterial = () => {
   const editMutation = useEditMaterial(id)
   const deleteMutation = useDeleteMaterial(id)
   const undeleteMutation = useUndeleteMaterial(id)
+  const mutationUploadFile = useUploadFile('materials')
 
   const isPending =
     editMutation.isPending ||
     deleteMutation.isPending ||
-    undeleteMutation.isPending
+    undeleteMutation.isPending ||
+    mutationUploadFile.isPending
 
   const { data } = materialQuery
 
@@ -41,17 +47,41 @@ export const FormEditMaterial = () => {
     obs: data.obs,
     categoryId: data.categoryId || '',
     measureId: data.measureId || '',
+    document: data.document,
   }
 
   const onSubmit = async (values: InsertMaterialFormValues) => {
-    editMutation.mutate(
-      { ...values, amount: convertAmountToMiliunits(values.amount) },
-      {
-        onSuccess: () => {
-          onClose()
+    const amount = convertAmountToMiliunits(values.amount)
+    const { document, ...restValues } = values
+
+    if (document instanceof File) {
+      mutationUploadFile.mutate(
+        { file: document },
+        {
+          onSuccess: (uploadedDocument) => {
+            handleSubmit({
+              ...restValues,
+              amount,
+              document: uploadedDocument,
+            })
+          },
         },
+      )
+    } else {
+      handleSubmit({
+        ...restValues,
+        amount,
+        document,
+      })
+    }
+  }
+
+  const handleSubmit = (values: InsertMaterialSchema) => {
+    editMutation.mutate(values, {
+      onSuccess: () => {
+        onClose()
       },
-    )
+    })
   }
 
   const handleDelete = async () => {

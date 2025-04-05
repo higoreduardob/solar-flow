@@ -1,5 +1,10 @@
 import { z } from 'zod'
 
+import {
+  insertDocumentSchema,
+  insertFileOrDocumentSchema,
+} from '@/features/common/schema'
+
 export const insertMaterialSchema = z.object({
   name: z
     .string({ message: 'Nome é obrigatório' })
@@ -16,13 +21,17 @@ export const insertMaterialSchema = z.object({
   measureId: z
     .string({ message: 'Unidade de medida é obrigatório' })
     .min(1, { message: 'Unidade de medida é obrigatório' }),
+  document: insertDocumentSchema.nullish(),
 })
 
 export const insertMaterialFormSchema = insertMaterialSchema.extend({
   amount: z
     .string({ message: 'Valor é obrigatório' })
     .min(1, { message: 'Valor é obrigatório' }),
+  document: insertFileOrDocumentSchema.nullish(),
 })
+
+export type InsertMaterialSchema = z.infer<typeof insertMaterialSchema>
 
 export type InsertMaterialFormValues = z.infer<typeof insertMaterialFormSchema>
 
@@ -34,4 +43,5 @@ export const insertMaterialDefaultValues: InsertMaterialFormValues = {
   obs: '',
   categoryId: '',
   measureId: '',
+  document: null,
 }

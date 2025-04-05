@@ -8,6 +8,8 @@ import {
   Users,
 } from 'lucide-react'
 
+import { useCurrentUser } from '@/features/auth/hooks/use-current-user'
+
 import {
   SidebarInset,
   SidebarProvider,
@@ -92,13 +94,18 @@ const USER_ITEMS: NavUserProps[] = [
   },
 ]
 
-// TODO: Get user values
 export default function Layout({ children }: { children: React.ReactNode }) {
+  const { user } = useCurrentUser()
+
+  if (!user) return null
+
+  const { name, email } = user
+
   return (
     <SidebarProvider>
       <AppSidebar
-        name="Higor"
-        email="higor@email.com"
+        name={name!}
+        email={email!}
         href="/plataforma"
         navItems={NAV_ITEMS}
         userItems={USER_ITEMS}

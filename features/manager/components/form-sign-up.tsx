@@ -36,7 +36,6 @@ export const FormSingUp = () => {
     })
   }
 
-  // TODO: Desacoplar
   return (
     <FormDialog
       formId="form-sign-up"

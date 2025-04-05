@@ -22,11 +22,12 @@ export default function UserPage() {
 
   if (isLoading) {
     return (
-      <div className="w-full flex flex-col gap-4">
-        <Skeleton className="h-[30px] w-[300px]" />
-        <Skeleton className="h-[80px] w-full" />
-        <DataTableLoading />
-      </div>
+      <section>
+        <div className="w-full flex flex-col gap-4">
+          <Skeleton className="h-[30px] w-[300px]" />
+          <DataTableLoading />
+        </div>
+      </section>
     )
   }
 

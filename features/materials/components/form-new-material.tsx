@@ -4,9 +4,11 @@ import { convertAmountToMiliunits } from '@/lib/utils'
 
 import {
   insertMaterialDefaultValues,
-  InsertMaterialFormValues,
+  type InsertMaterialFormValues,
+  type InsertMaterialSchema,
 } from '@/features/materials/schema'
 
+import { useUploadFile } from '@/features/common/api/use-upload-file'
 import { useNewMaterial } from '@/features/materials/hooks/use-new-material'
 import { useCreateMaterial } from '@/features/materials/api/use-create-material'
 
@@ -16,17 +18,41 @@ export const FormNewMaterial = () => {
   const { isOpen, onClose } = useNewMaterial()
 
   const mutation = useCreateMaterial()
-  const isPending = mutation.isPending
+  const mutationUploadFile = useUploadFile('materials')
+  const isPending = mutation.isPending || mutationUploadFile.isPending
 
   const onSubmit = async (values: InsertMaterialFormValues) => {
-    mutation.mutate(
-      { ...values, amount: convertAmountToMiliunits(values.amount) },
-      {
-        onSuccess: () => {
-          onClose()
+    const amount = convertAmountToMiliunits(values.amount)
+    const { document, ...restValues } = values
+
+    if (document instanceof File) {
+      mutationUploadFile.mutate(
+        { file: document },
+        {
+          onSuccess: (uploadedDocument) => {
+            handleSubmit({
+              ...restValues,
+              amount,
+              document: uploadedDocument,
+            })
+          },
         },
+      )
+    } else {
+      handleSubmit({
+        ...restValues,
+        amount,
+        document,
+      })
+    }
+  }
+
+  const handleSubmit = (values: InsertMaterialSchema) => {
+    mutation.mutate(values, {
+      onSuccess: () => {
+        onClose()
       },
-    )
+    })
   }
 
   return (

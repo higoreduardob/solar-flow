@@ -1,17 +1,20 @@
 import { toast } from 'sonner'
-import { useMutation } from '@tanstack/react-query'
 import { InferRequestType, InferResponseType } from 'hono'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
 
 import { client } from '@/lib/hono'
 
 type ResponseType = InferResponseType<
   (typeof client.api.manager)['sign-up']['$post']
 >
+
 type RequestType = InferRequestType<
   (typeof client.api.manager)['sign-up']['$post']
 >['json']
 
 export const useSignUp = () => {
+  const queryClient = useQueryClient()
+
   const mutation = useMutation<
     ResponseType,
     { message: string; status: number },
@@ -37,6 +40,7 @@ export const useSignUp = () => {
       if ('success' in res) {
         toast.success(res.success)
       }
+      queryClient.invalidateQueries({ queryKey: ['users'] })
     },
     onError: (err) => {
       toast.error(err.message)

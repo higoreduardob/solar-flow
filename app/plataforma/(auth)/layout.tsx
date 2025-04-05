@@ -21,8 +21,9 @@ function AuthLayoutComponent({ children }: { children: React.ReactNode }) {
 
   if (status === 'loading') {
     return (
-      <section className="bg-[url('/auth-bg.png')] bg-center bg-no-repeat bg-cover">
-        <Container className="min-h-screen grid grid-cols-1 justify-center items-center ">
+      <section className="relative bg-[url('/auth-bg.png')] bg-center bg-no-repeat bg-cover">
+        <div className="absolute inset-0 bg-black/40 dark:bg-black/60 z-0" />
+        <Container className="relative z-10 min-h-screen grid grid-cols-1 justify-center items-center">
           <Skeleton className="h-[250px] w-full max-w-md mx-auto" />
         </Container>
       </section>
@@ -34,8 +35,9 @@ function AuthLayoutComponent({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <section className="bg-[url('/auth-bg.png')] bg-center bg-no-repeat bg-cover">
-      <Container className="min-h-screen grid grid-cols-1 justify-center items-center">
+    <section className="relative bg-[url('/auth-bg.png')] bg-center bg-no-repeat bg-cover">
+      <div className="absolute inset-0 bg-black/40 dark:bg-black/60 z-0" />
+      <Container className="relative z-10 min-h-screen grid grid-cols-1 justify-center items-center">
         {children}
       </Container>
     </section>

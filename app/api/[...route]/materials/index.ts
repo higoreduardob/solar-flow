@@ -4,10 +4,11 @@ import { verifyAuth } from '@hono/auth-js'
 import { createId } from '@paralleldrive/cuid2'
 import { zValidator } from '@hono/zod-validator'
 
-import { UserRole } from '@prisma/client'
+import { Prisma, UserRole } from '@prisma/client'
 
 import { db } from '@/lib/db'
 import { statusFilter } from '@/lib/utils'
+import { destroyFile } from '@/lib/cloudinary'
 
 import { insertMaterialSchema } from '@/features/materials/schema'
 
@@ -112,6 +113,9 @@ const app = new Hono()
 
       const data = await db.material.findUnique({
         where: { id, enterpriseId: enterprise.id },
+        include: {
+          document: { omit: { id: true, createdAt: true, updatedAt: true } },
+        },
       })
 
       if (!data) {
@@ -130,7 +134,8 @@ const app = new Hono()
       const validatedFields = c.req.valid('json')
 
       if (!validatedFields) return c.json({ error: 'Campos inválidos' }, 400)
-      const { name, ...values } = validatedFields
+      const { name, categoryId, measureId, document, ...values } =
+        validatedFields
 
       if (!auth.token?.sub || !auth.token?.selectedEnterprise) {
         return c.json({ error: 'Usuário não autorizado' }, 401)
@@ -177,9 +182,33 @@ const app = new Hono()
         data: {
           id: createId(),
           name,
-          enterpriseId: enterprise.id,
+          enterprise: {
+            connect: { id: enterprise.id },
+          },
+          ...(categoryId
+            ? {
+                category: {
+                  connect: { id: categoryId },
+                },
+              }
+            : {}),
+          ...(measureId
+            ? {
+                measure: {
+                  connect: { id: measureId },
+                },
+              }
+            : {}),
           ...values,
-        },
+          ...(document && {
+            document: {
+              create: {
+                id: createId(),
+                ...document,
+              },
+            },
+          }),
+        } as Prisma.MaterialCreateInput,
       })
 
       return c.json({ success: 'Material criado' }, 201)
@@ -303,7 +332,8 @@ const app = new Hono()
       const validatedFields = c.req.valid('json')
 
       if (!validatedFields) return c.json({ error: 'Campos inválidos' }, 400)
-      const { name, ...values } = validatedFields
+      const { name, categoryId, measureId, document, ...values } =
+        validatedFields
 
       if (!id) {
         return c.json({ error: 'Identificador não encontrado' }, 400)
@@ -350,14 +380,70 @@ const app = new Hono()
 
       const currentMaterial = await db.material.findUnique({
         where: { id, enterpriseId: enterprise.id },
+        include: { document: { select: { publicId: true } } },
       })
       if (!currentMaterial) {
         return c.json({ error: 'Material não cadastrado' }, 404)
       }
+      const currentDocument = currentMaterial.document
+
+      if (currentDocument) {
+        if (
+          (document && document.publicId !== currentDocument.publicId) ||
+          !document
+        ) {
+          try {
+            const urlParts = currentDocument.publicId.split('/')
+            const publicIdWithExtension = urlParts[urlParts.length - 1]
+            const fileName = publicIdWithExtension.split('.')[0]
+            const oldPublicId = `materials/${fileName}`
+
+            const destroyResult = await destroyFile(oldPublicId)
+            if (destroyResult.result !== 'ok') {
+              return c.json({ error: 'Falha ao remover arquivo antigo' }, 400)
+            }
+          } catch (error) {
+            return c.json({ error: 'Falha ao remover arquivo antigo' }, 400)
+          }
+        }
+      }
 
       await db.material.update({
         where: { id, enterpriseId: enterprise.id },
-        data: { name, ...values },
+        data: {
+          name,
+          ...(categoryId
+            ? {
+                category: {
+                  connect: { id: categoryId },
+                },
+              }
+            : {}),
+          ...(measureId
+            ? {
+                measure: {
+                  connect: { id: measureId },
+                },
+              }
+            : {}),
+          ...values,
+          document:
+            document === null
+              ? {
+                  delete: currentDocument ? true : undefined,
+                }
+              : document
+                ? {
+                    upsert: {
+                      create: {
+                        id: createId(),
+                        ...document,
+                      },
+                      update: { ...document },
+                    },
+                  }
+                : undefined,
+        },
       })
 
       return c.json({ success: 'Material atualizado' }, 200)

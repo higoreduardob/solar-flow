@@ -2,6 +2,7 @@ import { z } from 'zod'
 
 import { removeMask } from '@/lib/format'
 import { validateCNPJ, validateCPF } from '@/lib/validate'
+import { AllowedMimeTypes, MaxFileSize } from '@/constants'
 
 export const whatsAppSchema = z
   .string({ message: 'WhatsApp é obrigatório' })
@@ -80,3 +81,47 @@ export const addressDefaultValues: AddressFormValues = {
   complement: '',
   number: '',
 }
+
+export const insertDocumentSchema = z.object({
+  name: z
+    .string({ message: 'Nome é obrigatório' })
+    .min(1, { message: 'Nome é obrigatório' }),
+  url: z
+    .string({ message: 'Url é obrigatório' })
+    .min(1, { message: 'Url é obrigatório' }),
+  publicId: z
+    .string({ message: 'Identificador é obrigatório' })
+    .min(1, { message: 'Identificador é obrigatório' }),
+  type: z
+    .string({ message: 'Formato é obrigatório' })
+    .min(1, { message: 'Formato é obrigatório' }),
+  size: z
+    .string({ message: 'Tamanho é obrigatório' })
+    .min(1, { message: 'Formato é obrigatório' }),
+})
+
+export type InsertDocumentFormValues = z.infer<typeof insertDocumentSchema>
+
+export const insertFileOrDocumentSchema = z
+  .union([z.instanceof(File), insertDocumentSchema])
+  .refine(
+    (value) =>
+      value === null || value instanceof File || typeof value === 'object',
+  )
+
+export type InsertFileOrDocumentFormValues = z.infer<
+  typeof insertFileOrDocumentSchema
+>
+
+export const insertFileSchema = z.object({
+  file: z
+    .instanceof(File, { message: 'Arquivo inválido' })
+    .refine(
+      (file) => file.size <= MaxFileSize,
+      'Arquivo muito pesado (máx 512kB)',
+    )
+    .refine(
+      (file) => AllowedMimeTypes.includes(file.type),
+      'Tipo de arquivo não suportado',
+    ),
+})

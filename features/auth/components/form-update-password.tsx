@@ -38,9 +38,9 @@ export const FormUpdatePassword = ({
   })
   const watchPassword = form.watch('newPassword')
 
-  // TODO: Clear fields
   const handleSubmit = (values: UpdatePasswordFormValues) => {
     onSubmit(values)
+    form.reset()
   }
 
   return (

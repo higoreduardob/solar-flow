@@ -18,6 +18,7 @@ import {
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -26,6 +27,7 @@ import {
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
+import { InputFile } from '@/components/input-file'
 import { FormDialog } from '@/components/form-dialog'
 import { Separator } from '@/components/ui/separator'
 import { AmountInput } from '@/components/amount-input'
@@ -252,6 +254,28 @@ export const FormMaterial = ({
               )}
             />
           </div>
+          <Separator className="my-4" />
+          <FormField
+            control={form.control}
+            name="document"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel htmlFor="document">Documento</FormLabel>
+                <FormControl>
+                  <InputFile
+                    id="document"
+                    value={field.value}
+                    onChange={field.onChange}
+                    multiple={false}
+                  />
+                </FormControl>
+                <FormDescription>
+                  Envie um único documento (PDF, DOCX, DWG, PNG, etc.)
+                </FormDescription>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
           <Separator className="my-4" />
           <FormField
             control={form.control}
