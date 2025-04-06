@@ -113,6 +113,14 @@ export type InsertFileOrDocumentFormValues = z.infer<
   typeof insertFileOrDocumentSchema
 >
 
+export const insertFileOrDocumentDefaultValues = {
+  name: '',
+  url: '',
+  publicId: '',
+  type: '',
+  size: '',
+}
+
 export const insertFileSchema = z.object({
   file: z
     .instanceof(File, { message: 'Arquivo inválido' })

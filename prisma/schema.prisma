@@ -26,7 +26,9 @@ model Document {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  material Material?
+  material   Material?
+  inmetros   Equipament? @relation("inmetro")
+  datasheets Equipament? @relation("datasheet")
 }
 
 model Address {
@@ -71,9 +73,10 @@ model Enterprise {
   members User[]            @relation("members")
   users   User[]            @relation("selectedEnterprise")
 
-  categories Category[]
-  measures   Measure[]
-  materials  Material[]
+  categories  Category[]
+  measures    Measure[]
+  materials   Material[]
+  equipaments Equipament[]
 }
 
 model User {
@@ -199,4 +202,42 @@ model Material {
   document   Document? @relation(fields: [documentId], references: [id], onDelete: SetNull)
 
   @@unique([name, enterpriseId], name: "unique_name_per_enterprise")
+}
+
+enum EquipamentRole {
+  PLATE
+  INVERTER
+}
+
+model Equipament {
+  id       String         @id @default(cuid())
+  name     String
+  supplier String
+  power    Int
+  role     EquipamentRole @default(PLATE)
+  sales    Int            @default(0)
+  obs      String?
+  status   Boolean        @default(true)
+
+  voc Int?
+  isc Int?
+  vmp Int?
+  imp Int?
+
+  circuitBreaker Int?
+  mppt           Int?
+  quantityString Int?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  enterpriseId String
+  enterprise   Enterprise @relation(fields: [enterpriseId], references: [id], onDelete: Cascade)
+
+  inmetroId   String?   @unique
+  inmetro     Document? @relation("inmetro", fields: [inmetroId], references: [id], onDelete: SetNull)
+  datasheetId String?   @unique
+  datasheet   Document? @relation("datasheet", fields: [datasheetId], references: [id], onDelete: SetNull)
+
+  @@unique([name, role, enterpriseId], name: "unique_name_role_per_enterprise")
 }

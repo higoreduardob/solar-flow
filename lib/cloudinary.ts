@@ -36,7 +36,7 @@ export async function uploadFile(
           url: result.secure_url,
           publicId: result.public_id,
           type: result.format,
-          size: String(result.bytes),
+          size: String(result.bytes), // TODO: Calculate MB or kB
         })
       },
     )
@@ -69,4 +69,20 @@ function generateRandomFileName(): string {
   const timestamp = Date.now()
   const randomString = Math.random().toString(36).substring(2, 8)
   return `file_${timestamp}_${randomString}`
+}
+
+export async function managerFile(folder: string, publicId: string) {
+  try {
+    const urlParts = publicId.split('/')
+    const publicIdWithExtension = urlParts[urlParts.length - 1]
+    const fileName = publicIdWithExtension.split('.')[0]
+    const oldPublicId = `${folder}/${fileName}`
+
+    const destroyResult = await destroyFile(oldPublicId)
+    if (destroyResult.result !== 'ok') {
+      throw new Error('Falha ao remover arquivo antigo')
+    }
+  } catch (error) {
+    throw new Error('Falha ao remover arquivo antigo')
+  }
 }

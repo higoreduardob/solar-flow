@@ -1,5 +1,3 @@
-'use client'
-
 import { convertAmountToMiliunits } from '@/lib/utils'
 
 import {

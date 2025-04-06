@@ -10,7 +10,7 @@ import { db } from '@/lib/db'
 import { statusFilter } from '@/lib/utils'
 import { managerFile } from '@/lib/cloudinary'
 
-import { insertMaterialSchema } from '@/features/materials/schema'
+import { insertEquipamentSchema } from '@/features/equipaments/schema'
 
 const app = new Hono()
   .get(
@@ -55,12 +55,8 @@ const app = new Hono()
         return c.json({ error: 'Usuário não autorizado' }, 401)
       }
 
-      const data = await db.material.findMany({
+      const data = await db.equipament.findMany({
         where: { enterpriseId: enterprise.id, status },
-        include: {
-          category: { select: { name: true } },
-          measure: { select: { name: true } },
-        },
         orderBy: { name: 'asc' },
       })
 
@@ -111,15 +107,16 @@ const app = new Hono()
         return c.json({ error: 'Usuário não autorizado' }, 401)
       }
 
-      const data = await db.material.findUnique({
+      const data = await db.equipament.findUnique({
         where: { id, enterpriseId: enterprise.id },
         include: {
-          document: { omit: { id: true, createdAt: true, updatedAt: true } },
+          inmetro: { omit: { id: true, createdAt: true, updatedAt: true } },
+          datasheet: { omit: { id: true, createdAt: true, updatedAt: true } },
         },
       })
 
       if (!data) {
-        return c.json({ error: 'Material não cadastrado' }, 404)
+        return c.json({ error: 'Equipamento não cadastrado' }, 404)
       }
 
       return c.json({ data }, 200)
@@ -128,14 +125,13 @@ const app = new Hono()
   .post(
     '/',
     verifyAuth(),
-    zValidator('json', insertMaterialSchema),
+    zValidator('json', insertEquipamentSchema),
     async (c) => {
       const auth = c.get('authUser')
       const validatedFields = c.req.valid('json')
 
       if (!validatedFields) return c.json({ error: 'Campos inválidos' }, 400)
-      const { name, categoryId, measureId, document, ...values } =
-        validatedFields
+      const { name, role, inmetro, datasheet, ...values } = validatedFields
 
       if (!auth.token?.sub || !auth.token?.selectedEnterprise) {
         return c.json({ error: 'Usuário não autorizado' }, 401)
@@ -169,51 +165,53 @@ const app = new Hono()
         return c.json({ error: 'Usuário não autorizado' }, 401)
       }
 
-      const existingMaterial = await db.material.findUnique({
+      const existingEquipament = await db.equipament.findUnique({
         where: {
-          unique_name_per_enterprise: { name, enterpriseId: enterprise.id },
+          unique_name_role_per_enterprise: {
+            name,
+            enterpriseId: enterprise.id,
+            role,
+          },
         },
       })
-      if (existingMaterial) {
-        return c.json({ error: 'Já existe material com este nome' }, 400)
+      if (existingEquipament) {
+        return c.json(
+          { error: 'Já existe equipamento deste tipo com esse nome' },
+          400,
+        )
       }
 
       // TODO: Remove document
 
-      await db.material.create({
+      await db.equipament.create({
         data: {
           id: createId(),
           name,
           enterprise: {
             connect: { id: enterprise.id },
           },
-          ...(categoryId
-            ? {
-                category: {
-                  connect: { id: categoryId },
-                },
-              }
-            : {}),
-          ...(measureId
-            ? {
-                measure: {
-                  connect: { id: measureId },
-                },
-              }
-            : {}),
-          ...values,
-          ...(document && {
-            document: {
+          role,
+          ...(inmetro && {
+            inmetro: {
               create: {
                 id: createId(),
-                ...document,
+                ...inmetro,
               },
             },
           }),
+          ...(datasheet && {
+            datasheet: {
+              create: {
+                id: createId(),
+                ...datasheet,
+              },
+            },
+          }),
+          ...values,
         },
       })
 
-      return c.json({ success: 'Material criado' }, 201)
+      return c.json({ success: 'Equipamento criado' }, 201)
     },
   )
   .post(
@@ -256,12 +254,12 @@ const app = new Hono()
         return c.json({ error: 'Usuário não autorizado' }, 401)
       }
 
-      await db.material.updateMany({
+      await db.equipament.updateMany({
         where: { id: { in: ids }, enterpriseId: enterprise.id },
         data: { status: false },
       })
 
-      return c.json({ success: 'Materiais bloqueados' }, 200)
+      return c.json({ success: 'Equipamentos bloqueados' }, 200)
     },
   )
   .patch(
@@ -311,31 +309,30 @@ const app = new Hono()
         return c.json({ error: 'Usuário não autorizado' }, 401)
       }
 
-      const data = await db.material.update({
+      const data = await db.equipament.update({
         where: { id, enterpriseId: enterprise.id },
         data: { status: true },
       })
 
       if (!data) {
-        return c.json({ error: 'Material não cadastrado' }, 404)
+        return c.json({ error: 'Equipamento não cadastrado' }, 404)
       }
 
-      return c.json({ success: 'Material desbloqueado' }, 200)
+      return c.json({ success: 'Equipamento desbloqueado' }, 200)
     },
   )
   .patch(
     '/:id',
     verifyAuth(),
     zValidator('param', z.object({ id: z.string().optional() })),
-    zValidator('json', insertMaterialSchema),
+    zValidator('json', insertEquipamentSchema),
     async (c) => {
       const auth = c.get('authUser')
       const { id } = c.req.valid('param')
       const validatedFields = c.req.valid('json')
 
       if (!validatedFields) return c.json({ error: 'Campos inválidos' }, 400)
-      const { name, categoryId, measureId, document, ...values } =
-        validatedFields
+      const { name, role, inmetro, datasheet, ...values } = validatedFields
 
       if (!id) {
         return c.json({ error: 'Identificador não encontrado' }, 400)
@@ -373,67 +370,93 @@ const app = new Hono()
         return c.json({ error: 'Usuário não autorizado' }, 401)
       }
 
-      const existingMaterial = await db.material.findFirst({
-        where: { name, enterpriseId: enterprise.id, NOT: { id } },
+      const existingEquipament = await db.equipament.findFirst({
+        where: {
+          name,
+          enterpriseId: enterprise.id,
+          role,
+          NOT: { id },
+        },
       })
-      if (existingMaterial) {
-        return c.json({ error: 'Já existe material com este nome' }, 400)
+      if (existingEquipament) {
+        return c.json(
+          { error: 'Já existe equipamento deste tipo com esse nome' },
+          400,
+        )
       }
 
-      const currentMaterial = await db.material.findUnique({
+      // TODO: Remove document
+
+      const currentEquipament = await db.equipament.findUnique({
         where: { id, enterpriseId: enterprise.id },
-        include: { document: { select: { publicId: true } } },
+        include: {
+          inmetro: { select: { publicId: true } },
+          datasheet: { select: { publicId: true } },
+        },
       })
-      if (!currentMaterial) {
-        return c.json({ error: 'Material não cadastrado' }, 404)
+      if (!currentEquipament) {
+        return c.json({ error: 'Equipamento não cadastrado' }, 404)
       }
-      const currentDocument = currentMaterial.document
+      const currentInmetro = currentEquipament.inmetro
+      const currentDatasheet = currentEquipament.datasheet
 
-      if (currentDocument) {
+      if (currentInmetro) {
         if (
-          (document && document.publicId !== currentDocument.publicId) ||
-          !document
+          (inmetro && inmetro.publicId !== currentInmetro.publicId) ||
+          !inmetro
         ) {
-          managerFile('materials', currentDocument.publicId).catch((err) =>
+          managerFile('equipaments', currentInmetro.publicId).catch((err) =>
             c.json({ error: err }, 400),
           )
         }
       }
 
-      // TODO: Remove document
+      if (currentDatasheet) {
+        if (
+          (datasheet && datasheet.publicId !== currentDatasheet.publicId) ||
+          !datasheet
+        ) {
+          managerFile('equipaments', currentDatasheet.publicId).catch((err) =>
+            c.json({ error: err }, 400),
+          )
+        }
+      }
 
-      await db.material.update({
+      await db.equipament.update({
         where: { id, enterpriseId: enterprise.id },
         data: {
           name,
-          ...(categoryId
-            ? {
-                category: {
-                  connect: { id: categoryId },
-                },
-              }
-            : {}),
-          ...(measureId
-            ? {
-                measure: {
-                  connect: { id: measureId },
-                },
-              }
-            : {}),
+          role,
           ...values,
-          document:
-            document === null
+          inmetro:
+            inmetro === null
               ? {
-                  delete: currentDocument ? true : undefined,
+                  delete: currentInmetro ? true : undefined,
                 }
-              : document
+              : inmetro
                 ? {
                     upsert: {
                       create: {
                         id: createId(),
-                        ...document,
+                        ...inmetro,
                       },
-                      update: { ...document },
+                      update: { ...inmetro },
+                    },
+                  }
+                : undefined,
+          datasheet:
+            datasheet === null
+              ? {
+                  delete: currentDatasheet ? true : undefined,
+                }
+              : datasheet
+                ? {
+                    upsert: {
+                      create: {
+                        id: createId(),
+                        ...datasheet,
+                      },
+                      update: { ...datasheet },
                     },
                   }
                 : undefined,
@@ -487,16 +510,16 @@ const app = new Hono()
         return c.json({ error: 'Usuário não autorizado' }, 401)
       }
 
-      const data = await db.material.update({
+      const data = await db.equipament.update({
         where: { id, enterpriseId: enterprise.id },
         data: { status: false },
       })
 
       if (!data) {
-        return c.json({ error: 'Material não cadastrado' }, 404)
+        return c.json({ error: 'Equipamento não cadastrado' }, 404)
       }
 
-      return c.json({ success: 'Material bloqueado' }, 200)
+      return c.json({ success: 'Equipamento bloqueado' }, 200)
     },
   )
 

@@ -13,6 +13,9 @@ import { TableMeasure } from '@/features/materials/measures/components/table-mea
 import { FormNewMeasure } from '@/features/materials/measures/components/form-new-measure'
 import { FormEditMeasure } from '@/features/materials/measures/components/form-edit-measure'
 
+import { FormNewEquipament } from '@/features/equipaments/components/form-new-equipament'
+import { FormEditEquipament } from '@/features/equipaments/components/form-edit-equipament'
+
 export const DialogProvider = () => {
   const isMounted = useMountedState()
 
@@ -30,6 +33,9 @@ export const DialogProvider = () => {
       <TableMeasure />
       <FormNewMeasure />
       <FormEditMeasure />
+
+      <FormNewEquipament />
+      <FormEditEquipament />
     </>
   )
 }

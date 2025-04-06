@@ -1,5 +1,3 @@
-'use client'
-
 import { InsertCategoryFormValues } from '@/features/materials/categories/schema'
 
 import { useConfirm } from '@/hooks/use-confirm'

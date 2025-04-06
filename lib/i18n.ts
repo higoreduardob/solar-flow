@@ -1,4 +1,4 @@
-import { UserRole } from '@prisma/client'
+import { EquipamentRole, UserRole } from '@prisma/client'
 
 export function translatePasswordOptionsProps(option: PasswordOptionsProps) {
   switch (option) {
@@ -23,5 +23,14 @@ export function translateUserRole(role: UserRole) {
       return 'Colaborador'
     default:
       return 'Cliente'
+  }
+}
+
+export function translateEquipamentRole(role: EquipamentRole) {
+  switch (role) {
+    case 'INVERTER':
+      return 'Inversor'
+    default:
+      return 'Módulo'
   }
 }

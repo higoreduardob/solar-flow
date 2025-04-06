@@ -259,7 +259,7 @@ export const FormMaterial = ({
             control={form.control}
             name="document"
             render={({ field }) => (
-              <FormItem>
+              <FormItem className="w-full">
                 <FormLabel htmlFor="document">Documento</FormLabel>
                 <FormControl>
                   <InputFile

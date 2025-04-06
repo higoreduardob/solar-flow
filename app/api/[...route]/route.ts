@@ -7,6 +7,7 @@ import authConfig from '@/auth.config'
 import uploads from './uploads'
 import manager from './manager'
 import materials from './materials'
+import equipaments from './equipaments'
 import authenticate from './authenticate'
 import measures from './materials/measures'
 import categories from './materials/categories'
@@ -21,6 +22,7 @@ const routes = app
   .route('/measures', measures)
   .route('/materials', materials)
   .route('/categories', categories)
+  .route('/equipaments', equipaments)
   .route('/authenticate', authenticate)
 
 // @ts-ignor

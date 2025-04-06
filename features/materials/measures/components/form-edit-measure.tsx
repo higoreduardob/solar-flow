@@ -1,5 +1,3 @@
-'use client'
-
 import { InsertMeasureFormValues } from '@/features/materials/measures/schema'
 
 import { useConfirm } from '@/hooks/use-confirm'
