@@ -8,7 +8,7 @@ import { UserRole } from '@prisma/client'
 
 import { db } from '@/lib/db'
 import { statusFilter } from '@/lib/utils'
-import { filterFiles } from '@/lib/cloudinary'
+import { filterFiles, managerFile } from '@/lib/cloudinary'
 
 import { insertUserSchema } from '@/features/users/schema'
 
@@ -147,6 +147,8 @@ const app = new Hono()
     const auth = c.get('authUser')
     const validatedFields = c.req.valid('json')
 
+    // TODO: Improve remove files in error
+
     if (!validatedFields) return c.json({ error: 'Campos inválidos' }, 400)
     const {
       email,
@@ -188,12 +190,17 @@ const app = new Hono()
       return c.json({ error: 'Usuário não autorizado' }, 401)
     }
 
-    // const existingUser = await db.user.findUnique({
-    //   where: { unique_email_per_role: { email, role } },
-    // })
-    // if (existingUser) return c.json({ error: 'Email já cadastrado' }, 400)
-    // TODO: Add unique_email_role_per_enterprise
-    // TODO: Remove document
+    const existingUser = await db.user.findUnique({
+      where: {
+        unique_email_role_per_enterprise: {
+          email,
+          role,
+          enterpriseBelongId: enterprise.id,
+        },
+      },
+    })
+    if (existingUser)
+      return c.json({ error: 'Usuário já cadastrado, para essa empresa' }, 400)
 
     // TODO: Add password and selected enterprise
 
@@ -202,18 +209,15 @@ const app = new Hono()
         id: createId(),
         email,
         role,
-        // Use connect for relations instead of direct ID fields
         owner: {
           connect: { id: ownerId },
         },
         enterpriseBelong: {
           connect: { id: enterprise.id },
         },
-        // Create the address as a nested operation
         address: {
           create: { ...address },
         },
-        // Handle documents if they exist
         documents: { createMany: { data: documents || [] } },
         ...values,
       },
@@ -335,6 +339,8 @@ const app = new Hono()
       const { id } = c.req.valid('param')
       const validatedFields = c.req.valid('json')
 
+      // TODO: Improve remove files in error
+
       if (!validatedFields) return c.json({ error: 'Campos inválidos' }, 400)
       const {
         email,
@@ -380,11 +386,19 @@ const app = new Hono()
         return c.json({ error: 'Usuário não autorizado' }, 401)
       }
 
-      // const existingUser = await db.user.findUnique({
-      //   where: { unique_email_per_role: { email, role } },
-      // })
-      // if (existingUser) return c.json({ error: 'Email já cadastrado' }, 400)
-      // TODO: Add unique_email_role_per_enterprise
+      const existingUser = await db.user.findFirst({
+        where: {
+          email,
+          role,
+          enterpriseBelongId: enterprise.id,
+          NOT: { id },
+        },
+      })
+      if (existingUser)
+        return c.json(
+          { error: 'Usuário já cadastrado, para essa empresa' },
+          400,
+        )
 
       const currentDocumentIds = await db.user.findUnique({
         where: { id, ownerId },
@@ -395,11 +409,21 @@ const app = new Hono()
         documents,
         currentDocumentIds?.documents,
       )
-      // TODO: Remove document
+
+      if (toRemove && toRemove.length > 0) {
+        await Promise.all(
+          toRemove.map(async (item) =>
+            managerFile('users', item).catch((err) =>
+              c.json({ error: err }, 400),
+            ),
+          ),
+        )
+      }
 
       const data = await db.user.update({
         where: { id, ownerId, enterpriseBelongId: enterprise.id },
         data: {
+          email,
           role,
           ...values,
           address: {
@@ -409,7 +433,7 @@ const app = new Hono()
             },
           },
           documents: {
-            deleteMany: { id: { in: toRemove } },
+            deleteMany: { publicId: { in: toRemove } },
             createMany: { data: toAdd || [] },
           },
         },

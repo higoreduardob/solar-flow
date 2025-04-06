@@ -130,6 +130,8 @@ const app = new Hono()
       const auth = c.get('authUser')
       const validatedFields = c.req.valid('json')
 
+      // TODO: Improve remove files in error
+
       if (!validatedFields) return c.json({ error: 'Campos inválidos' }, 400)
       const { name, role, inmetro, datasheet, ...values } = validatedFields
 
@@ -330,6 +332,8 @@ const app = new Hono()
       const auth = c.get('authUser')
       const { id } = c.req.valid('param')
       const validatedFields = c.req.valid('json')
+
+      // TODO: Improve remove files in error
 
       if (!validatedFields) return c.json({ error: 'Campos inválidos' }, 400)
       const { name, role, inmetro, datasheet, ...values } = validatedFields

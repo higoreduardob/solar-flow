@@ -117,7 +117,7 @@ model User {
   documents Document[]
 
   @@unique([email, role], name: "unique_email_per_role")
-  // TODO: Add unique_email_role_per_enterprise
+  @@unique([email, role, enterpriseBelongId], name: "unique_email_role_per_enterprise")
 }
 
 model VerificationToken {

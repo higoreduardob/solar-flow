@@ -87,7 +87,6 @@ const app = new Hono()
       }
 
       const formData = await c.req.formData()
-
       const filesEntries = formData.getAll('files')
 
       if (!filesEntries || filesEntries.length === 0) {
@@ -102,11 +101,10 @@ const app = new Hono()
         return c.json({ error: 'Nenhum arquivo válido enviado' }, 400)
       }
 
-      const results = []
-      for (const file of files) {
-        const uploadResult = await uploadFile(file, folder)
-        results.push(uploadResult)
-      }
+      // TODO: Fix 1 file in array
+      const results = await Promise.all(
+        files.map(async (file) => await uploadFile(file, folder)),
+      )
 
       return c.json({ data: { ...results } }, 200)
     },
