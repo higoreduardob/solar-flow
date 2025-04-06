@@ -86,3 +86,20 @@ export async function managerFile(folder: string, publicId: string) {
     throw new Error('Falha ao remover arquivo antigo')
   }
 }
+
+export async function filterFiles(
+  files: InsertDocumentFormValues[] | null | undefined,
+  documents: { publicId: string }[] | undefined,
+) {
+  const fileIds = new Set(files?.map((file) => file.publicId))
+  const documentIds = new Set(documents?.map((document) => document.publicId))
+
+  const [toAdd, toRemove] = await Promise.all([
+    files?.filter((file) => !documentIds.has(file.publicId)),
+    documents
+      ?.filter((doc) => !fileIds.has(doc.publicId))
+      .map((doc) => doc.publicId),
+  ])
+
+  return { toAdd, toRemove }
+}

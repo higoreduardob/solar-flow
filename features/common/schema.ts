@@ -133,3 +133,18 @@ export const insertFileSchema = z.object({
       'Tipo de arquivo não suportado',
     ),
 })
+
+export const insertMultipleFileSchema = z.object({
+  files: z.array(
+    z
+      .instanceof(File, { message: 'Arquivo inválido' })
+      .refine(
+        (file) => file.size <= MaxFileSize,
+        'Arquivo muito pesado (máx 512kB)',
+      )
+      .refine(
+        (file) => AllowedMimeTypes.includes(file.type),
+        'Tipo de arquivo não suportado',
+      ),
+  ),
+})

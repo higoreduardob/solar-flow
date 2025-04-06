@@ -25,8 +25,10 @@ import {
 import { Button } from '@/components/ui/button'
 import { FormControl } from '@/components/ui/form'
 
+type FileOrDocument = File | InsertDocumentFormValues
+
 const isStoredFile = (
-  file: InsertFileOrDocumentFormValues,
+  file: FileOrDocument,
 ): file is InsertDocumentFormValues => {
   return 'url' in file && typeof file.url === 'string'
 }
@@ -34,14 +36,12 @@ const isStoredFile = (
 interface InputFileProps
   extends Omit<React.HTMLAttributes<HTMLDivElement>, 'onChange'> {
   value?:
-    | InsertFileOrDocumentFormValues
-    | InsertFileOrDocumentFormValues[]
+    | FileOrDocument
     | null
+    | (FileOrDocument | null | undefined)[]
+    | undefined
   onChange?: (
-    files:
-      | InsertFileOrDocumentFormValues
-      | InsertFileOrDocumentFormValues[]
-      | null,
+    file: FileOrDocument | null | (FileOrDocument | null)[] | undefined,
   ) => void
   multiple?: boolean
   accept?: Record<string, string[]>
@@ -102,9 +102,14 @@ export function InputFile({
   className,
   ...props
 }: InputFileProps) {
-  const [files, setFiles] = useState<InsertFileOrDocumentFormValues[]>(() => {
+  const [files, setFiles] = useState<FileOrDocument[]>(() => {
     if (!value) return []
-    return Array.isArray(value) ? value : [value]
+    if (Array.isArray(value)) {
+      return value.filter(
+        (item): item is FileOrDocument => item !== null && item !== undefined,
+      )
+    }
+    return value ? [value] : []
   })
 
   const [rejectedFiles, setRejectedFiles] = useState<File[]>([])
@@ -112,8 +117,14 @@ export function InputFile({
   useEffect(() => {
     if (!value) {
       setFiles([])
+    } else if (Array.isArray(value)) {
+      setFiles(
+        value.filter(
+          (item): item is FileOrDocument => item !== null && item !== undefined,
+        ),
+      )
     } else {
-      setFiles(Array.isArray(value) ? value : [value])
+      setFiles(value ? [value] : [])
     }
   }, [value])
 

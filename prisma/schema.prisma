@@ -29,6 +29,9 @@ model Document {
   material   Material?
   inmetros   Equipament? @relation("inmetro")
   datasheets Equipament? @relation("datasheet")
+
+  user   User?   @relation(fields: [userId], references: [id])
+  userId String?
 }
 
 model Address {
@@ -72,6 +75,7 @@ model Enterprise {
   owners  EnterpriseOwner[]
   members User[]            @relation("members")
   users   User[]            @relation("selectedEnterprise")
+  teams   Team[]
 
   categories  Category[]
   measures    Measure[]
@@ -80,26 +84,25 @@ model Enterprise {
 }
 
 model User {
-  id                 String   @id @default(cuid())
-  name               String
-  email              String
-  password           String
-  whatsApp           String
-  cpfCnpj            String
-  role               UserRole
-  status             Boolean  @default(true)
-  hasAcceptedTerms   Boolean  @default(true)
-  isTwoFactorEnabled Boolean  @default(false)
+  id       String   @id @default(cuid())
+  name     String
+  email    String
+  whatsApp String
+  cpfCnpj  String
+  role     UserRole
+  status   Boolean  @default(true)
+
+  password           String?
+  hasAcceptedTerms   Boolean @default(true)
+  isTwoFactorEnabled Boolean @default(false)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   ownerId String?
-  owner   User?   @relation("users", fields: [ownerId], references: [id])
-  users   User[]  @relation("users")
-
-  address               Address?
-  twoFactorConfirmation TwoFactorConfirmation?
+  owner   User?      @relation("users", fields: [ownerId], references: [id])
+  users   User[]     @relation("users")
+  teams   TeamUser[]
 
   enterpriseOwners   EnterpriseOwner[]
   enterpriseBelongId String?
@@ -108,7 +111,13 @@ model User {
   selectedEnterprise String?
   enterprise         Enterprise? @relation("selectedEnterprise", fields: [selectedEnterprise], references: [id])
 
+  address               Address?
+  twoFactorConfirmation TwoFactorConfirmation?
+
+  documents Document[]
+
   @@unique([email, role], name: "unique_email_per_role")
+  // TODO: Add unique_email_role_per_enterprise
 }
 
 model VerificationToken {
@@ -240,4 +249,28 @@ model Equipament {
   datasheet   Document? @relation("datasheet", fields: [datasheetId], references: [id], onDelete: SetNull)
 
   @@unique([name, role, enterpriseId], name: "unique_name_role_per_enterprise")
+}
+
+model TeamUser {
+  teamId String
+  team   Team   @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: NoAction)
+
+  @@id([teamId, userId])
+}
+
+model Team {
+  id     String  @id @default(cuid())
+  name   String
+  obs    String?
+  status Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  enterpriseId String
+  enterprise   Enterprise @relation(fields: [enterpriseId], references: [id], onDelete: Cascade)
+
+  users TeamUser[]
 }

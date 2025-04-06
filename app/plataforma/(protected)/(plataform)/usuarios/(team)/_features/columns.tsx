@@ -8,14 +8,14 @@ import { client } from '@/lib/hono'
 import { zipCodeMask } from '@/lib/format'
 import { translateUserRole } from '@/lib/i18n'
 
-import { Actions } from '@/app/gestao/(protected)/(manager)/usuarios/_features/actions'
+import { Actions } from '@/app/plataforma/(protected)/(plataform)/usuarios/(team)/_features/actions'
 
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 
 export type ResponseType = InferResponseType<
-  typeof client.api.manager.$get,
+  typeof client.api.users.$get,
   200
 >['data'][0]
 
@@ -51,18 +51,11 @@ export const columns: ColumnDef<ResponseType>[] = [
           variant="ghost"
           onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
         >
-          Usuários
+          Usuário
           <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
       )
     },
-  },
-  {
-    accessorKey: 'nível',
-    header: () => {
-      return <Button variant="ghost">Nível</Button>
-    },
-    cell: ({ row }) => <Badge>{translateUserRole(row.original.role)}</Badge>,
   },
   {
     accessorKey: 'whatsApp',
@@ -76,6 +69,7 @@ export const columns: ColumnDef<ResponseType>[] = [
     header: () => {
       return <Button variant="ghost">Email</Button>
     },
+    cell: ({ row }) => row.original.email,
   },
   {
     accessorKey: 'CPF/CNPJ',
@@ -83,6 +77,13 @@ export const columns: ColumnDef<ResponseType>[] = [
       return <Button variant="ghost">CPF/CNPJ</Button>
     },
     cell: ({ row }) => row.original.cpfCnpj,
+  },
+  {
+    accessorKey: 'nível',
+    header: () => {
+      return <Button variant="ghost">Nível</Button>
+    },
+    cell: ({ row }) => <Badge>{translateUserRole(row.original.role)}</Badge>,
   },
   {
     accessorKey: 'endereço',

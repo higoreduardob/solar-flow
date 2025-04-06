@@ -11,7 +11,7 @@ export const useGetUsers = () => {
   const query = useQuery({
     queryKey: ['users', role, status],
     queryFn: async () => {
-      const response = await client.api['manager'].$get({
+      const response = await client.api['users'].$get({
         query: { role, status },
       })
 

@@ -4,6 +4,7 @@ import { initAuthConfig, type AuthConfig } from '@hono/auth-js'
 
 import authConfig from '@/auth.config'
 
+import users from './users'
 import uploads from './uploads'
 import manager from './manager'
 import materials from './materials'
@@ -17,6 +18,7 @@ const app = new Hono().basePath('/api')
 app.use('*', initAuthConfig(getAuthConfig))
 
 const routes = app
+  .route('/users', users)
   .route('/uploads', uploads)
   .route('/manager', manager)
   .route('/measures', measures)

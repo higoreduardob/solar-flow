@@ -16,6 +16,9 @@ import { FormEditMeasure } from '@/features/materials/measures/components/form-e
 import { FormNewEquipament } from '@/features/equipaments/components/form-new-equipament'
 import { FormEditEquipament } from '@/features/equipaments/components/form-edit-equipament'
 
+import { FormNewDialogUser } from '@/features/users/other/form-new-dialog-user'
+import { FormEditDialogUser } from '@/features/users/other/form-edit-dialog-user'
+
 export const DialogProvider = () => {
   const isMounted = useMountedState()
 
@@ -36,6 +39,9 @@ export const DialogProvider = () => {
 
       <FormNewEquipament />
       <FormEditEquipament />
+
+      <FormNewDialogUser />
+      <FormEditDialogUser />
     </>
   )
 }
