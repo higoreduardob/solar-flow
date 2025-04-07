@@ -128,7 +128,7 @@ export const FormUser = ({
             />
           )}
           {id && (
-            <div className="flex justify-end">
+            <div className="ml-auto flex justify-end">
               <FormField
                 control={form.control}
                 name="status"

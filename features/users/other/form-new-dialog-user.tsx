@@ -12,12 +12,14 @@ import { useUploadMultipleFiles } from '@/features/common/api/use-upload-file'
 import { FormDialogUser } from '@/features/users/other/form-dialog-user'
 
 export const FormNewDialogUser = () => {
-  const { isOpen, onClose } = useNewUser()
+  const { isOpen, role, onClose } = useNewUser()
 
   const mutation = useCreateUser()
   const { mutateAsync: uploadFiles, isPending: uploadPending } =
     useUploadMultipleFiles('users')
   const isPending = mutation.isPending || uploadPending
+
+  if (!role) return null
 
   const onSubmit = async (values: InsertUserFormValues) => {
     const { documents } = values
@@ -69,7 +71,7 @@ export const FormNewDialogUser = () => {
     <FormDialogUser
       isOpen={isOpen}
       isPending={isPending}
-      defaultValues={insertUserDefaultValues}
+      defaultValues={{ ...insertUserDefaultValues, role }}
       handleClose={onClose}
       onSubmit={onSubmit}
     />

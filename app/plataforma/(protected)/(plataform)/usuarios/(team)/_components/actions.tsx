@@ -31,7 +31,7 @@ export const Actions = () => {
         <UsersRound />
         Gerenciar equipe
       </Button>
-      <Button onClick={onOpenNewUser}>Adicionar</Button>
+      <Button onClick={() => onOpenNewUser('EMPLOYEE')}>Adicionar</Button>
       <SelectFilter
         placeholder="Selecione tipo"
         defaultValue={undefined}

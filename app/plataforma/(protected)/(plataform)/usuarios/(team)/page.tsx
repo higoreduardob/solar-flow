@@ -12,11 +12,11 @@ import { DataTable, DataTableLoading } from '@/components/data-table'
 import { Actions } from '@/app/plataforma/(protected)/(plataform)/usuarios/(team)/_components/actions'
 
 export default function TeamPage() {
-  const usersQuery = useGetUsers()
+  const { onChangeStatus, status, role } = useFilterUser()
+
+  const usersQuery = useGetUsers(role)
   const users = usersQuery.data || []
   const deleteUsers = useBulkDeleteUsers()
-
-  const { onChangeStatus, status } = useFilterUser()
 
   const isLoading = usersQuery.isLoading || deleteUsers.isPending
 

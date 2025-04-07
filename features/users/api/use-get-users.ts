@@ -1,12 +1,14 @@
 import { useQuery } from '@tanstack/react-query'
 
+import { UserRole } from '@prisma/client'
+
 import { client } from '@/lib/hono'
 import { cpfCnpjMask, phoneMask } from '@/lib/format'
 
 import { useFilterUser } from '@/features/users/hooks/use-filter-user'
 
-export const useGetUsers = () => {
-  const { role, status } = useFilterUser()
+export const useGetUsers = (role?: UserRole) => {
+  const { status } = useFilterUser()
 
   const query = useQuery({
     queryKey: ['users', role, status],
