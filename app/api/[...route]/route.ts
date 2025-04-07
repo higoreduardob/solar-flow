@@ -5,6 +5,7 @@ import { initAuthConfig, type AuthConfig } from '@hono/auth-js'
 import authConfig from '@/auth.config'
 
 import users from './users'
+import teams from './teams'
 import uploads from './uploads'
 import manager from './manager'
 import materials from './materials'
@@ -19,6 +20,7 @@ app.use('*', initAuthConfig(getAuthConfig))
 
 const routes = app
   .route('/users', users)
+  .route('/teams', teams)
   .route('/uploads', uploads)
   .route('/manager', manager)
   .route('/measures', measures)

@@ -8,9 +8,8 @@ import { UserRole } from '@prisma/client'
 
 import { db } from '@/lib/db'
 import { statusFilter } from '@/lib/utils'
-import { filterFiles, managerFile } from '@/lib/cloudinary'
 
-import { insertUserSchema } from '@/features/users/schema'
+import { insertTeamSchema } from '@/features/teams/schema'
 
 const app = new Hono()
   .get(
@@ -19,13 +18,12 @@ const app = new Hono()
     zValidator(
       'query',
       z.object({
-        role: z.nativeEnum(UserRole).optional(),
         status: z.string().optional(),
       }),
     ),
     async (c) => {
       const auth = c.get('authUser')
-      const { role, status: statusValue } = c.req.valid('query')
+      const { status: statusValue } = c.req.valid('query')
 
       const status = statusFilter(statusValue)
 
@@ -59,79 +57,11 @@ const app = new Hono()
         return c.json({ error: 'Usuário não autorizado' }, 401)
       }
 
-      const roles: UserRole[] = role ? [role] : ['EMPLOYEE', 'MANAGER']
-
-      const users = await db.user.findMany({
-        where: {
-          ownerId,
-          NOT: { id: user.id },
-          enterpriseBelongId: enterprise.id,
-          role: { in: roles },
-          status,
+      const data = await db.team.findMany({
+        where: { enterpriseId: enterprise.id, status },
+        include: {
+          users: { select: { user: { select: { id: true, name: true } } } },
         },
-        include: { address: true },
-        orderBy: { name: 'asc' },
-      })
-
-      const data = users.map(({ password, ...rest }) => rest)
-
-      return c.json({ data }, 200)
-    },
-  )
-  .get(
-    '/documents',
-    verifyAuth(),
-    zValidator(
-      'query',
-      z.object({
-        role: z.nativeEnum(UserRole).optional(),
-      }),
-    ),
-    async (c) => {
-      const auth = c.get('authUser')
-      const { role } = c.req.valid('query')
-
-      if (!auth.token?.sub || !auth.token?.selectedEnterprise) {
-        return c.json({ error: 'Usuário não autorizado' }, 401)
-      }
-
-      const user = await db.user.findUnique({ where: { id: auth.token.sub } })
-      if (!user) return c.json({ error: 'Usuário não autorizado' }, 401)
-
-      if (
-        ![UserRole.OWNER as string, UserRole.MANAGER as string].includes(
-          user.role,
-        )
-      ) {
-        return c.json({ error: 'Usuário sem autorização' }, 400)
-      }
-      const ownerId = user.role === UserRole.OWNER ? user.id : user.ownerId!
-
-      const enterprise = await db.enterprise.findUnique({
-        where: {
-          id: auth.token.selectedEnterprise.id,
-          owners: {
-            some: {
-              userId: ownerId,
-            },
-          },
-        },
-      })
-      if (!enterprise) {
-        return c.json({ error: 'Usuário não autorizado' }, 401)
-      }
-
-      const roles: UserRole[] = role ? [role] : ['EMPLOYEE', 'MANAGER']
-
-      const data = await db.user.findMany({
-        where: {
-          ownerId,
-          NOT: { id: user.id },
-          enterpriseBelongId: enterprise.id,
-          role: { in: roles },
-          status: true,
-        },
-        select: { id: true, name: true, cpfCnpj: true, whatsApp: true },
         orderBy: { name: 'asc' },
       })
 
@@ -180,45 +110,26 @@ const app = new Hono()
         return c.json({ error: 'Usuário não autorizado' }, 401)
       }
 
-      const data = await db.user.findUnique({
-        where: {
-          id,
-          ownerId,
-          enterpriseBelongId: enterprise.id,
-        },
+      const data = await db.team.findUnique({
+        where: { id, enterpriseId: enterprise.id },
         include: {
-          address: true,
-          documents: {
-            omit: { createdAt: true, id: true, updatedAt: true, userId: true },
-          },
+          users: { select: { user: { select: { id: true, name: true } } } },
         },
       })
 
       if (!data) {
-        return c.json({ error: 'Usuário não cadastrado' }, 404)
+        return c.json({ error: 'Equipe não cadastrada' }, 404)
       }
 
-      const { password, ...rest } = data
-
-      return c.json({ data: rest }, 200)
+      return c.json({ data }, 200)
     },
   )
-  .post('/', verifyAuth(), zValidator('json', insertUserSchema), async (c) => {
+  .post('/', verifyAuth(), zValidator('json', insertTeamSchema), async (c) => {
     const auth = c.get('authUser')
     const validatedFields = c.req.valid('json')
 
-    // TODO: Improve remove files in error
-
     if (!validatedFields) return c.json({ error: 'Campos inválidos' }, 400)
-    const {
-      email,
-      role,
-      address,
-      documents,
-      password,
-      repeatPassword,
-      ...values
-    } = validatedFields
+    const { employees, ...values } = validatedFields
 
     if (!auth.token?.sub || !auth.token?.selectedEnterprise) {
       return c.json({ error: 'Usuário não autorizado' }, 401)
@@ -250,40 +161,20 @@ const app = new Hono()
       return c.json({ error: 'Usuário não autorizado' }, 401)
     }
 
-    const existingUser = await db.user.findUnique({
-      where: {
-        unique_email_role_per_enterprise: {
-          email,
-          role,
-          enterpriseBelongId: enterprise.id,
-        },
-      },
-    })
-    if (existingUser)
-      return c.json({ error: 'Usuário já cadastrado, para essa empresa' }, 400)
-
-    // TODO: Add password and selected enterprise
-
-    await db.user.create({
+    await db.team.create({
       data: {
         id: createId(),
-        email,
-        role,
-        owner: {
-          connect: { id: ownerId },
+        enterpriseId: enterprise.id,
+        users: {
+          createMany: {
+            data: employees.map((employee) => ({ userId: employee })),
+          },
         },
-        enterpriseBelong: {
-          connect: { id: enterprise.id },
-        },
-        address: {
-          create: { ...address },
-        },
-        documents: { createMany: { data: documents || [] } },
         ...values,
       },
     })
 
-    return c.json({ success: 'Usuário criado' }, 201)
+    return c.json({ success: 'Equipe criada' }, 201)
   })
   .post(
     '/bulk-delete',
@@ -323,16 +214,12 @@ const app = new Hono()
         return c.json({ error: 'Usuário não autorizado' }, 401)
       }
 
-      await db.user.updateMany({
-        where: {
-          id: { in: ids },
-          enterpriseBelongId: enterprise.id,
-          ownerId,
-        },
+      await db.team.updateMany({
+        where: { id: { in: ids }, enterpriseId: enterprise.id },
         data: { status: false },
       })
 
-      return c.json({ success: 'Usuários bloqueados' }, 200)
+      return c.json({ success: 'Equipes bloqueadas' }, 200)
     },
   )
   .patch(
@@ -377,40 +264,30 @@ const app = new Hono()
         return c.json({ error: 'Usuário não autorizado' }, 401)
       }
 
-      const data = await db.user.update({
-        where: { id, enterpriseBelongId: enterprise.id, ownerId },
+      const data = await db.team.update({
+        where: { id, enterpriseId: enterprise.id },
         data: { status: true },
       })
 
       if (!data) {
-        return c.json({ error: 'Usuário não cadastrado' }, 404)
+        return c.json({ error: 'Equipe não cadastrada' }, 404)
       }
 
-      return c.json({ success: 'Usuário desbloqueado' }, 200)
+      return c.json({ success: 'Equipe desbloqueada' }, 200)
     },
   )
   .patch(
     '/:id',
     verifyAuth(),
     zValidator('param', z.object({ id: z.string().optional() })),
-    zValidator('json', insertUserSchema),
+    zValidator('json', insertTeamSchema),
     async (c) => {
       const auth = c.get('authUser')
       const { id } = c.req.valid('param')
       const validatedFields = c.req.valid('json')
 
-      // TODO: Improve remove files in error
-
       if (!validatedFields) return c.json({ error: 'Campos inválidos' }, 400)
-      const {
-        email,
-        role,
-        address,
-        documents,
-        password,
-        repeatPassword,
-        ...values
-      } = validatedFields
+      const { employees, ...values } = validatedFields
 
       if (!id) {
         return c.json({ error: 'Identificador não encontrado' }, 400)
@@ -446,64 +323,42 @@ const app = new Hono()
         return c.json({ error: 'Usuário não autorizado' }, 401)
       }
 
-      const existingUser = await db.user.findFirst({
-        where: {
-          email,
-          role,
-          enterpriseBelongId: enterprise.id,
-          NOT: { id },
-        },
-      })
-      if (existingUser)
-        return c.json(
-          { error: 'Usuário já cadastrado, para essa empresa' },
-          400,
-        )
-
-      const currentDocumentIds = await db.user.findUnique({
-        where: { id, ownerId },
-        select: { documents: { select: { publicId: true } } },
+      const currentEmployeeIds = await db.team.findUnique({
+        where: { id, enterpriseId: enterprise.id },
+        select: { users: { select: { userId: true } } },
       })
 
-      const { toAdd, toRemove } = await filterFiles(
-        documents,
-        currentDocumentIds?.documents,
+      const employeeIds = new Set(
+        currentEmployeeIds?.users.map((employee) => employee.userId),
       )
 
-      if (toRemove && toRemove.length > 0) {
-        await Promise.all(
-          toRemove.map(async (item) =>
-            managerFile('users', item).catch((err) =>
-              c.json({ error: err }, 400),
-            ),
-          ),
-        )
-      }
+      const [toAdd, toRemove] = await Promise.all([
+        employees
+          .filter((employee) => !employeeIds.has(employee))
+          .map((employee) => ({ userId: employee })),
+        currentEmployeeIds?.users
+          .filter((employee) => !new Set(employees).has(employee.userId))
+          .map((employee) => employee.userId),
+      ])
 
-      const data = await db.user.update({
-        where: { id, ownerId, enterpriseBelongId: enterprise.id },
+      const data = await db.team.update({
+        where: { id, enterpriseId: enterprise.id },
         data: {
-          email,
-          role,
           ...values,
-          address: {
-            upsert: {
-              create: { ...address },
-              update: { ...address },
+          users: {
+            createMany: {
+              data: toAdd,
             },
-          },
-          documents: {
-            deleteMany: { publicId: { in: toRemove } },
-            createMany: { data: toAdd || [] },
+            deleteMany: { userId: { in: toRemove } },
           },
         },
       })
 
       if (!data) {
-        return c.json({ error: 'Usuário não cadastrado' }, 404)
+        return c.json({ error: 'Equipe não cadastrada' }, 404)
       }
 
-      return c.json({ success: 'Usuário atualizado' }, 200)
+      return c.json({ success: 'Equipe atualizada' }, 200)
     },
   )
   .delete(
@@ -548,16 +403,16 @@ const app = new Hono()
         return c.json({ error: 'Usuário não autorizado' }, 401)
       }
 
-      const data = await db.user.update({
-        where: { id, ownerId, enterpriseBelongId: enterprise.id },
+      const data = await db.team.update({
+        where: { id, enterpriseId: enterprise.id },
         data: { status: false },
       })
 
       if (!data) {
-        return c.json({ error: 'Usuário não cadastrado' }, 404)
+        return c.json({ error: 'Equipe não cadastrada' }, 404)
       }
 
-      return c.json({ success: 'Usuário bloqueado' }, 200)
+      return c.json({ success: 'Equipe bloqueada' }, 200)
     },
   )
 

@@ -19,6 +19,10 @@ import { FormEditEquipament } from '@/features/equipaments/components/form-edit-
 import { FormNewDialogUser } from '@/features/users/other/form-new-dialog-user'
 import { FormEditDialogUser } from '@/features/users/other/form-edit-dialog-user'
 
+import { TableTeam } from '@/features/teams/components/table-team'
+import { FormNewTeam } from '@/features/teams/components/form-new-team'
+import { FormEditTeam } from '@/features/teams/components/form-edit-team'
+
 export const DialogProvider = () => {
   const isMounted = useMountedState()
 
@@ -42,6 +46,10 @@ export const DialogProvider = () => {
 
       <FormNewDialogUser />
       <FormEditDialogUser />
+
+      <TableTeam />
+      <FormNewTeam />
+      <FormEditTeam />
     </>
   )
 }
