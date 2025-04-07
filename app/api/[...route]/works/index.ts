@@ -10,6 +10,7 @@ import { db } from '@/lib/db'
 import { statusFilter } from '@/lib/utils'
 
 import { insertWorkSchema } from '@/features/works/schema'
+import { insertEquipamentInWorkSchema } from '@/features/works/equipaments/schema'
 
 const app = new Hono()
   .get(
@@ -59,6 +60,65 @@ const app = new Hono()
         include: { customer: { select: { name: true, whatsApp: true } } },
         orderBy: { createdAt: 'asc' },
       })
+
+      return c.json({ data }, 200)
+    },
+  )
+  .get(
+    '/:id/equipaments',
+    verifyAuth(),
+    zValidator('param', z.object({ id: z.string().optional() })),
+    async (c) => {
+      const auth = c.get('authUser')
+      const { id } = c.req.valid('param')
+
+      if (!id) {
+        return c.json({ error: 'Identificador não encontrado' }, 400)
+      }
+
+      if (!auth.token?.sub || !auth.token?.selectedEnterprise) {
+        return c.json({ error: 'Usuário não autorizado' }, 401)
+      }
+
+      const user = await db.user.findUnique({ where: { id: auth.token.sub } })
+      if (!user) return c.json({ error: 'Usuário não autorizado' }, 401)
+
+      if (
+        ![
+          UserRole.OWNER as string,
+          UserRole.MANAGER as string,
+          UserRole.EMPLOYEE as string,
+        ].includes(user.role)
+      ) {
+        return c.json({ error: 'Usuário sem autorização' }, 400)
+      }
+      const ownerId = user.role === UserRole.OWNER ? user.id : user.ownerId!
+
+      const enterprise = await db.enterprise.findUnique({
+        where: {
+          id: auth.token.selectedEnterprise.id,
+          owners: {
+            some: {
+              userId: ownerId,
+            },
+          },
+        },
+      })
+      if (!enterprise) {
+        return c.json({ error: 'Usuário não autorizado' }, 401)
+      }
+
+      const data = await db.work.findUnique({
+        where: { id, enterpriseId: enterprise.id },
+        select: {
+          equipaments: true,
+          role: true,
+        },
+      })
+
+      if (!data) {
+        return c.json({ error: 'Obra não cadastrada' }, 404)
+      }
 
       return c.json({ data }, 200)
     },
@@ -420,6 +480,92 @@ const app = new Hono()
       })
 
       return c.json({ success: 'Obra entregue' }, 200)
+    },
+  )
+  .patch(
+    '/:id/equipaments',
+    verifyAuth(),
+    zValidator('param', z.object({ id: z.string().optional() })),
+    zValidator('json', insertEquipamentInWorkSchema),
+    async (c) => {
+      const auth = c.get('authUser')
+      const { id } = c.req.valid('param')
+      const validatedFields = c.req.valid('json')
+
+      if (!validatedFields) return c.json({ error: 'Campos inválidos' }, 400)
+      const { equipaments } = validatedFields
+
+      if (!id) {
+        return c.json({ error: 'Identificador não encontrado' }, 400)
+      }
+
+      if (!auth.token?.sub || !auth.token?.selectedEnterprise) {
+        return c.json({ error: 'Usuário não autorizado' }, 401)
+      }
+
+      const user = await db.user.findUnique({ where: { id: auth.token.sub } })
+      if (!user) return c.json({ error: 'Usuário não autorizado' }, 401)
+
+      if (
+        ![
+          UserRole.OWNER as string,
+          UserRole.MANAGER as string,
+          UserRole.EMPLOYEE as string,
+        ].includes(user.role)
+      ) {
+        return c.json({ error: 'Usuário sem autorização' }, 400)
+      }
+      const ownerId = user.role === UserRole.OWNER ? user.id : user.ownerId!
+
+      const enterprise = await db.enterprise.findUnique({
+        where: {
+          id: auth.token.selectedEnterprise.id,
+          owners: {
+            some: {
+              userId: ownerId,
+            },
+          },
+        },
+      })
+      if (!enterprise) {
+        return c.json({ error: 'Usuário não autorizado' }, 401)
+      }
+
+      const currentEquipaments = await db.work.findUnique({
+        where: { id, enterpriseId: enterprise.id },
+        select: {
+          equipaments: { select: { equipamentId: true, quantity: true } },
+        },
+      })
+      const assetIds = new Set(
+        equipaments.map((equipament) => equipament.equipamentId),
+      )
+      const equipamentIds = new Set(
+        currentEquipaments?.equipaments.map(
+          (equipament) => equipament.equipamentId,
+        ),
+      )
+
+      const [toAdd, toRemove] = await Promise.all([
+        equipaments?.filter(
+          (equipament) => !equipamentIds.has(equipament.equipamentId),
+        ),
+        currentEquipaments?.equipaments
+          .filter((equipament) => !assetIds.has(equipament.equipamentId))
+          .map((equipament) => equipament.equipamentId),
+      ])
+
+      await db.work.update({
+        where: { id, enterpriseId: enterprise.id },
+        data: {
+          equipaments: {
+            deleteMany: { equipamentId: { in: toRemove } },
+            createMany: { data: toAdd || [] },
+          },
+        },
+      })
+
+      return c.json({ success: 'Obra atualizada' }, 200)
     },
   )
   .patch(

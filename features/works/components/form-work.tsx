@@ -1,5 +1,6 @@
 import { useEffect } from 'react'
 import { useForm } from 'react-hook-form'
+import { CircleX, Timer } from 'lucide-react'
 import { zodResolver } from '@hookform/resolvers/zod'
 
 import {
@@ -29,10 +30,8 @@ import { Separator } from '@/components/ui/separator'
 import { DatePicker } from '@/components/date-picker'
 import { AmountInput } from '@/components/amount-input'
 import { SelectCreate } from '@/components/select-create'
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
-import { Button } from '@/components/ui/button'
 import { ButtonLoading } from '@/components/button-custom'
-import { CircleX, Timer } from 'lucide-react'
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 
 type Props = {
   id?: string
@@ -114,7 +113,7 @@ export const FormWork = ({
         onSubmit={form.handleSubmit(handleSubmit)}
       >
         {id && (
-          <div className="flex items-center justify-end gap-2 w-full">
+          <div className="flex items-center flex-col sm:flex-row justify-end gap-2 w-full">
             <ButtonLoading
               type="button"
               variant="primary"

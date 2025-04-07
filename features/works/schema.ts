@@ -1,7 +1,6 @@
 import { z } from 'zod'
 
 import { addressSchema, insertDocumentSchema } from '@/features/common/schema'
-import { insertMaterialInWorkSchema } from '../materials/schema'
 
 export const insertWorkSchema = z.object({
   amount: z.coerce.number({
@@ -47,20 +46,6 @@ export const insertWorkSchema = z.object({
   //   .array(z.string().min(1, { message: 'Colaborador é obrigatório' }))
   //   .nullish(),
   // materials: insertMaterialInWorkSchema.nullish(),
-  // equipaments: z
-  //   .array(
-  //     z.object({
-  //       equipamentId: z
-  //         .string()
-  //         .min(1, { message: 'Equipamento é obrigatório' }),
-  //       quantity: z.coerce
-  //         .number({
-  //           invalid_type_error: 'Quantitdade é obrigatório',
-  //         })
-  //         .min(1, { message: 'Quantidade é obrigatório' }),
-  //     }),
-  //   )
-  //   .nullish(),
 })
 
 export const insertWorkFormSchema = insertWorkSchema
@@ -121,5 +106,4 @@ export const insertWorkDefaultValues: InsertWorkFormValues = {
   // documents: null,
   // teams: null,
   // materials: null,
-  // equipaments: null,
 }

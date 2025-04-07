@@ -45,21 +45,3 @@ export const insertMaterialDefaultValues: InsertMaterialFormValues = {
   measureId: '',
   document: null,
 }
-
-export const insertMaterialInWorkSchema = z.object({
-  materialId: z.string().min(1, { message: 'Material é obrigatório' }),
-  amount: z.coerce.number({ invalid_type_error: 'Valor é obrigatório' }),
-  quantity: z.coerce
-    .number({ invalid_type_error: 'Quantidade é obrigatório' })
-    .min(1, { message: 'Quantidade é obrigatório' }),
-})
-
-export const insertMaterialInWorkFormSchema = insertMaterialInWorkSchema.extend(
-  {
-    amount: z.string().min(1, { message: 'Valor da obra é obrigatório' }),
-  },
-)
-
-export type InsertMaterialInWorkFormValues = z.infer<
-  typeof insertMaterialInWorkFormSchema
->

@@ -1,4 +1,5 @@
 import { useEffect } from 'react'
+import { FileUser } from 'lucide-react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 
@@ -16,12 +17,11 @@ import {
   FormMessage,
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
+import { CardData } from '@/components/card-data'
 import { Textarea } from '@/components/ui/textarea'
 import { FormDialog } from '@/components/form-dialog'
 import { Separator } from '@/components/ui/separator'
 import { SelectCreate } from '@/components/select-create'
-import { CardData } from '@/components/card-data'
-import { FileUser } from 'lucide-react'
 
 type Props = {
   id?: string
