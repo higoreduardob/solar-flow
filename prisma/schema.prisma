@@ -30,8 +30,12 @@ model Document {
   inmetros   Equipament? @relation("inmetro")
   datasheets Equipament? @relation("datasheet")
 
-  user   User?   @relation(fields: [userId], references: [id])
-  userId String?
+  user          User?        @relation(fields: [userId], references: [id])
+  userId        String?
+  work          Work?        @relation(fields: [workId], references: [id])
+  workId        String?
+  transaction   Transaction? @relation(fields: [transactionId], references: [id])
+  transactionId String?
 }
 
 model Address {
@@ -48,6 +52,8 @@ model Address {
   user         User?       @relation(fields: [userId], references: [id], onDelete: Cascade)
   enterpriseId String?     @unique
   enterprise   Enterprise? @relation(fields: [enterpriseId], references: [id], onDelete: Cascade)
+  workId       String?     @unique
+  workd        Work?       @relation(fields: [workId], references: [id], onDelete: Cascade)
 }
 
 model EnterpriseOwner {
@@ -81,6 +87,9 @@ model Enterprise {
   measures    Measure[]
   materials   Material[]
   equipaments Equipament[]
+
+  works        Work[]
+  transactions Transaction[]
 }
 
 model User {
@@ -115,6 +124,10 @@ model User {
   twoFactorConfirmation TwoFactorConfirmation?
 
   documents Document[]
+
+  customerWorks    Work[] @relation("customer")
+  responsibleWorks Work[] @relation("responsible")
+  designerWorks    Work[] @relation("designer")
 
   @@unique([email, role], name: "unique_email_per_role")
   @@unique([email, role, enterpriseBelongId], name: "unique_email_role_per_enterprise")
@@ -210,6 +223,8 @@ model Material {
   documentId String?   @unique
   document   Document? @relation(fields: [documentId], references: [id], onDelete: SetNull)
 
+  works WorkMaterial[]
+
   @@unique([name, enterpriseId], name: "unique_name_per_enterprise")
 }
 
@@ -248,6 +263,8 @@ model Equipament {
   datasheetId String?   @unique
   datasheet   Document? @relation("datasheet", fields: [datasheetId], references: [id], onDelete: SetNull)
 
+  works WorkEquipament[]
+
   @@unique([name, role, enterpriseId], name: "unique_name_role_per_enterprise")
 }
 
@@ -273,4 +290,111 @@ model Team {
   enterprise   Enterprise @relation(fields: [enterpriseId], references: [id], onDelete: Cascade)
 
   users TeamUser[]
+  works WorkTeam[]
+}
+
+enum WorkRole {
+  INPROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+model WorkTeam {
+  workId String
+  work   Work   @relation(fields: [workId], references: [id], onDelete: Cascade)
+  teamId String
+  team   Team   @relation(fields: [teamId], references: [id], onDelete: NoAction)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@id([workId, teamId])
+}
+
+model WorkMaterial {
+  workId     String
+  work       Work     @relation(fields: [workId], references: [id], onDelete: Cascade)
+  materialId String
+  material   Material @relation(fields: [materialId], references: [id], onDelete: NoAction)
+  quantity   Int
+  amount     Int
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([workId, materialId])
+}
+
+model WorkEquipament {
+  workId       String
+  work         Work       @relation(fields: [workId], references: [id], onDelete: NoAction)
+  equipamentId String
+  equipament   Equipament @relation(fields: [equipamentId], references: [id], onDelete: NoAction)
+  quantity     Int
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([workId, equipamentId])
+}
+
+model Transaction {
+  id     String @id @default(cuid())
+  name   String
+  amount Int
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  enterpriseId String
+  enterprise   Enterprise @relation(fields: [enterpriseId], references: [id])
+  workId       String
+  work         Work       @relation(fields: [workId], references: [id], onDelete: Cascade)
+
+  documents Document[]
+}
+
+model Work {
+  id     String @id @default(cuid())
+  cod    Int    @default(autoincrement())
+  amount Int
+
+  circuitBreaker    Int?
+  uc                String?
+  isAddressCustomer Boolean @default(true)
+
+  coordinates String?
+  xLat        String?
+  yLat        String?
+  lat         String?
+  long        String?
+  obs         String?
+  status      Boolean @default(true)
+  role WorkRole @default(INPROGRESS)
+
+  orderDate             DateTime?
+  equipamentArrivalDate DateTime?
+  startDateOfWork       DateTime?
+  approvalDate          DateTime?
+  deliveryDate          DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  address Address?
+
+  enterpriseId  String
+  enterprise    Enterprise @relation(fields: [enterpriseId], references: [id], onDelete: Cascade)
+  customerId    String
+  customer      User       @relation("customer", fields: [customerId], references: [id], onDelete: NoAction)
+  responsibleId String
+  responsible   User       @relation("responsible", fields: [responsibleId], references: [id], onDelete: NoAction)
+  designerId    String
+  designer      User       @relation("designer", fields: [designerId], references: [id], onDelete: NoAction)
+
+  documents    Document[]
+  teams        WorkTeam[]
+  materials    WorkMaterial[]
+  equipaments  WorkEquipament[]
+  transactions Transaction[]
 }

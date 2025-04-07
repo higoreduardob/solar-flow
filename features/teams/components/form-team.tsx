@@ -58,8 +58,7 @@ export const FormTeam = ({
 
   const userDocumentsQuery = useGetUserDocuments('EMPLOYEE')
   const onCreateUser = () => {
-    // onChangeRoleUser('EMPLOYEE')
-    onOpenNewUser()
+    onOpenNewUser('EMPLOYEE')
   }
   const isLoadingUserDocuments =
     userDocumentsQuery.isPending || userDocumentsQuery.isLoading

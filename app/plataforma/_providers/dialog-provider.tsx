@@ -23,6 +23,8 @@ import { TableTeam } from '@/features/teams/components/table-team'
 import { FormNewTeam } from '@/features/teams/components/form-new-team'
 import { FormEditTeam } from '@/features/teams/components/form-edit-team'
 
+import { FormDialogNewWork } from '@/features/works/components/form-new-dialog-work'
+
 export const DialogProvider = () => {
   const isMounted = useMountedState()
 
@@ -50,6 +52,8 @@ export const DialogProvider = () => {
       <TableTeam />
       <FormNewTeam />
       <FormEditTeam />
+
+      <FormDialogNewWork />
     </>
   )
 }

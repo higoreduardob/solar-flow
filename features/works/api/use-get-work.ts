@@ -1,15 +1,14 @@
 import { useQuery } from '@tanstack/react-query'
 
 import { client } from '@/lib/hono'
-import { formattedAddress } from '@/lib/utils'
-import { cpfCnpjMask, phoneMask } from '@/lib/format'
+import { convertAmountFromMiliunits, formattedAddress } from '@/lib/utils'
 
-export const useGetUser = (id?: string) => {
+export const useGetWork = (id?: string) => {
   const query = useQuery({
     enabled: !!id,
-    queryKey: ['users', id],
+    queryKey: ['works', id],
     queryFn: async () => {
-      const response = await client.api['users'][':id'].$get({
+      const response = await client.api['works'][':id'].$get({
         param: { id },
       })
 
@@ -22,8 +21,7 @@ export const useGetUser = (id?: string) => {
       const { data } = await response.json()
       return {
         ...data,
-        whatsApp: phoneMask(data.whatsApp),
-        cpfCnpj: cpfCnpjMask(data.cpfCnpj),
+        amount: convertAmountFromMiliunits(data.amount),
         address: formattedAddress(data.address),
       }
     },

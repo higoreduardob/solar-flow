@@ -11,11 +11,15 @@ import { Button, buttonVariants } from '@/components/ui/button'
 interface ButtonProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement>,
     VariantProps<typeof buttonVariants> {
+  blocked?: boolean
   asChild?: boolean
 }
 
 export const ButtonLoading = React.forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className, variant, size, asChild = false, ...props }, ref) => {
+  (
+    { className, variant, size, asChild = false, disabled, blocked, ...props },
+    ref,
+  ) => {
     return (
       <Button
         ref={ref}
@@ -23,12 +27,19 @@ export const ButtonLoading = React.forwardRef<HTMLButtonElement, ButtonProps>(
         variant={variant}
         size={size}
         asChild={asChild}
+        disabled={disabled || blocked}
         {...props}
       >
-        {props.disabled ? (
+        {disabled || blocked ? (
           <>
-            <Loader2 className="animate-spin size-4 text-slate-300" />
-            Aguarde...
+            {!blocked ? (
+              <>
+                <Loader2 className="animate-spin size-4 text-slate-300" />
+                Aguarde...
+              </>
+            ) : (
+              props.children
+            )}
           </>
         ) : (
           props.children

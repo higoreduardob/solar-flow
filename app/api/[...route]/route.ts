@@ -6,6 +6,7 @@ import authConfig from '@/auth.config'
 
 import users from './users'
 import teams from './teams'
+import works from './works'
 import uploads from './uploads'
 import manager from './manager'
 import materials from './materials'
@@ -21,6 +22,7 @@ app.use('*', initAuthConfig(getAuthConfig))
 const routes = app
   .route('/users', users)
   .route('/teams', teams)
+  .route('/works', works)
   .route('/uploads', uploads)
   .route('/manager', manager)
   .route('/measures', measures)
