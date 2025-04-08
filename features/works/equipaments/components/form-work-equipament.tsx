@@ -1,8 +1,12 @@
-import { Plus } from 'lucide-react'
+'use client'
+
+import { CircleX, EthernetPort, LucideProps, Plus, Sunset } from 'lucide-react'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useFieldArray, useForm } from 'react-hook-form'
 
-import { EquipamentRole } from '@prisma/client'
+import { cn } from '@/lib/utils'
+
+import type { EquipamentRole } from '@prisma/client'
 
 import { translateEquipamentRole } from '@/lib/i18n'
 
@@ -17,6 +21,13 @@ import {
   insertEquipamentInWorkSchema,
 } from '@/features/works/equipaments/schema'
 
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card'
 import {
   Form,
   FormControl,
@@ -34,6 +45,11 @@ type Props = {
   defaultValues: InsertEquipamentInWorkFormValues
   onSubmit: (values: InsertEquipamentInWorkFormValues) => void
 }
+
+export type FilterOptionsProps = {
+  label: string
+  value: string
+}[]
 
 export const FormWorkEquipament = ({
   isPending,
@@ -67,19 +83,21 @@ export const FormWorkEquipament = ({
           <FormEquipamentRole
             role="PLATE"
             isPending={isPending}
+            fields={fields}
+            icon={Sunset}
             onAdd={(equipament) => append(equipament)}
+            onRemove={(index) => remove(index)}
           />
           <FormEquipamentRole
             role="INVERTER"
             isPending={isPending}
+            fields={fields}
+            icon={EthernetPort}
             onAdd={(equipament) => append(equipament)}
+            onRemove={(index) => remove(index)}
           />
         </div>
-        <Button
-          type="submit"
-          className="mt-4 w-fit"
-          disabled={isPending || fields.length === 0}
-        >
+        <Button type="submit" className="mt-4 w-fit" disabled={isPending}>
           Salvar equipamentos
         </Button>
       </form>
@@ -90,11 +108,19 @@ export const FormWorkEquipament = ({
 const FormEquipamentRole = ({
   role,
   isPending,
+  fields,
+  icon: Icon,
   onAdd,
+  onRemove,
 }: {
   role: EquipamentRole
   isPending: boolean
+  fields: any[]
+  icon: React.ForwardRefExoticComponent<
+    Omit<LucideProps, 'ref'> & React.RefAttributes<SVGSVGElement>
+  >
   onAdd: (equipament: EquipamentItemFormValues) => void
+  onRemove: (index: number) => void
 }) => {
   const { onOpen: onOpenNewEquipament } = useNewEquipament()
 
@@ -115,6 +141,25 @@ const FormEquipamentRole = ({
       value: equipament.id,
     }))
   const isLoadingEquipaments = equipamentsQuery.isLoading
+
+  const roleEquipaments = fields.filter((field) => {
+    const equipament = equipamentsQuery.data?.find(
+      (eq) => eq.id === field.equipamentId,
+    )
+    return equipament?.role === role
+  })
+
+  const options: FilterOptionsProps = roleEquipaments.map((field) => {
+    const equipament = equipamentsQuery.data?.find(
+      (eq) => eq.id === field.equipamentId,
+    )
+    return {
+      label: equipament?.name || '',
+      value: field.equipamentId,
+      quantity: field.quantity,
+      index: fields.findIndex((f) => f.id === field.id),
+    }
+  })
 
   const handleAddEquipament = form.handleSubmit((values) => {
     onAdd(values)
@@ -169,6 +214,14 @@ const FormEquipamentRole = ({
           )}
         />
       </div>
+      <CardData
+        title={translateEquipamentRole(role)}
+        description={`Veja aqui todos os ${translateEquipamentRole(role)} desta obra`}
+        icon={Icon}
+        disabled={isPending}
+        options={options}
+        onRemove={onRemove}
+      />
       <Button
         type="button"
         className="w-fit mt-2"
@@ -179,5 +232,71 @@ const FormEquipamentRole = ({
         Adicionar {translateEquipamentRole(role)}
       </Button>
     </div>
+  )
+}
+
+const CardData = ({
+  title,
+  description,
+  icon: Icon,
+  disabled,
+  options,
+  onRemove,
+}: {
+  title: string
+  description: string
+  icon: React.ForwardRefExoticComponent<
+    Omit<LucideProps, 'ref'> & React.RefAttributes<SVGSVGElement>
+  >
+  disabled?: boolean
+  options: (FilterOptionsProps[0] & { quantity?: number; index?: number })[]
+  onRemove: (index: number) => void
+}) => {
+  return (
+    <Card className="flex flex-col gap-2 p-2">
+      <CardHeader>
+        <CardTitle className="text-sm">{title}</CardTitle>
+        <CardDescription className="text-[0.8rem] text-muted-foreground">
+          {description}
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        {options && !!options.length ? (
+          <div className="flex items-center flex-wrap gap-2">
+            {options.map((option) => (
+              <div
+                key={option.value}
+                className="group flex items-center gap-1 relative rounded-md text-sm font-medium transition-colors focus-visible:outline-none border border-input bg-background shadow-sm hover:bg-accent hover:text-accent-foreground h-9 px-4 py-2"
+              >
+                <div className="group-hover:flex hidden transition-all duration-500 items-center gap-1 absolute top-0 right-0 bg-white/50 p-1 rounded-md">
+                  <span
+                    title="Remover"
+                    className={cn(
+                      'cursor-pointer text-black',
+                      disabled && 'cursor-not-allowed',
+                    )}
+                    onClick={() => {
+                      if (!disabled && typeof option.index === 'number') {
+                        onRemove(option.index)
+                      }
+                    }}
+                  >
+                    <CircleX size={16} />
+                  </span>
+                </div>
+                <Icon size={16} />
+                <span className="text-xs text-muted-foreground">
+                  {option.quantity || 0} unids: {option.label}
+                </span>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <span className="text-xs text-muted-foreground">
+            Nenhum registro cadastro
+          </span>
+        )}
+      </CardContent>
+    </Card>
   )
 }

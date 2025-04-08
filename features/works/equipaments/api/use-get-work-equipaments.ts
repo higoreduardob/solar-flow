@@ -5,7 +5,7 @@ import { client } from '@/lib/hono'
 export const useGetWorkEquipaments = (id?: string) => {
   const query = useQuery({
     enabled: !!id,
-    queryKey: ['works', id],
+    queryKey: ['works-equipaments', id],
     queryFn: async () => {
       const response = await client.api['works'][':id']['equipaments'].$get({
         param: { id },

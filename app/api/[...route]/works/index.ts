@@ -545,6 +545,13 @@ const app = new Hono()
           (equipament) => equipament.equipamentId,
         ),
       )
+      const currentEquipamentMaps = new Map(
+        currentEquipaments?.equipaments.map((e) => [
+          e.equipamentId,
+          e.quantity,
+        ]),
+      )
+      const salesEquipamentUpdates = []
 
       const [toAdd, toRemove] = await Promise.all([
         equipaments?.filter(
@@ -554,6 +561,33 @@ const app = new Hono()
           .filter((equipament) => !assetIds.has(equipament.equipamentId))
           .map((equipament) => equipament.equipamentId),
       ])
+
+      if (equipaments && equipaments.length > 0) {
+        for (const { equipamentId, quantity } of equipaments) {
+          const current = currentEquipamentMaps.get(equipamentId) || 0
+          const diff = quantity - current
+
+          salesEquipamentUpdates.push(
+            db.equipament.update({
+              where: { id: equipamentId },
+              data: { sales: { increment: diff } },
+            }),
+          )
+
+          currentEquipamentMaps.delete(equipamentId)
+        }
+
+        for (const [equipamentId, quantity] of currentEquipamentMaps) {
+          salesEquipamentUpdates.push(
+            db.equipament.update({
+              where: { id: equipamentId },
+              data: { sales: { decrement: quantity } },
+            }),
+          )
+        }
+
+        await Promise.all(salesEquipamentUpdates)
+      }
 
       await db.work.update({
         where: { id, enterpriseId: enterprise.id },

@@ -24,6 +24,7 @@ export const FormEditWorkEquipament = ({ id }: Props) => {
   const defaultValues: InsertEquipamentInWorkFormValues = {
     equipaments: data.equipaments,
   }
+  console.log(defaultValues)
 
   const onSubmit = async (values: InsertEquipamentInWorkFormValues) => {
     editMutation.mutate(values)
