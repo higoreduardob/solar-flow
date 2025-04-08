@@ -1,5 +1,6 @@
 import { columns } from '@/features/teams/resources/columns'
 
+import { useNewTeam } from '@/features/teams/hooks/use-new-team'
 import { useGetTeams } from '@/features/teams/api/use-get-teams'
 import { useOpenTeamData } from '@/features/teams/hooks/use-open-team'
 import { useFilterTeam } from '@/features/teams/hooks/use-filter-team'
@@ -8,7 +9,6 @@ import { useBulkDeleteTeams } from '@/features/teams/api/use-bulk-delete-teams'
 import { Button } from '@/components/ui/button'
 import { ContentDialog } from '@/components/content-dialog'
 import { DataTable, DataTableLoading } from '@/components/data-table'
-import { useNewTeam } from '../hooks/use-new-team'
 
 export const TableTeam = () => {
   const { isOpen, onClose } = useOpenTeamData()

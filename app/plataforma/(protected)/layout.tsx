@@ -9,6 +9,7 @@ import { UserRole } from '@prisma/client'
 
 import { useCurrentUser } from '@/features/auth/hooks/use-current-user'
 
+import { SheetProvider } from '@/app/plataforma/_providers/sheet-provider'
 import { DialogProvider } from '@/app/plataforma/_providers/dialog-provider'
 
 import { Skeleton } from '@/components/ui/skeleton'
@@ -40,6 +41,7 @@ function ProtectedLayoutComponent({ children }: { children: React.ReactNode }) {
 
   return (
     <>
+      <SheetProvider />
       <DialogProvider />
       {children}
     </>

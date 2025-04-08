@@ -9,10 +9,14 @@ import {
   TrendingDown,
 } from 'lucide-react'
 
-import { useConfirm } from '@/hooks/use-confirm'
+import { WorkRole } from '@prisma/client'
 
-import { useDeleteUser } from '@/features/users/api/use-delete-user'
-import { useUndeleteUser } from '@/features/users/api/use-undelete-user'
+import { useConfirm } from '@/hooks/use-confirm'
+import { useDeleteWork } from '@/features/works/api/use-delete-work'
+import { useCanceledWork } from '@/features/works/api/use-canceled-work'
+import { useUndeleteWork } from '@/features/works/api/use-undelete-work'
+import { useCompletedWork } from '@/features/works/api/use-completed-work'
+import { useNewTransaction } from '@/features/works/transactions/hooks/use-new-transaction'
 
 import {
   DropdownMenu,
@@ -21,11 +25,6 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { Button } from '@/components/ui/button'
-import { WorkRole } from '@prisma/client'
-import { useDeleteWork } from '@/features/works/api/use-delete-work'
-import { useCanceledWork } from '@/features/works/api/use-canceled-work'
-import { useCompletedWork } from '@/features/works/api/use-completed-work'
-import { useUndeleteWork } from '@/features/works/api/use-undelete-work'
 
 type Props = {
   id: string
@@ -35,6 +34,7 @@ type Props = {
 
 export const Actions = ({ id, status, role }: Props) => {
   const router = useRouter()
+  const { onOpen: onOpenTransaction } = useNewTransaction()
 
   const [ConfirmationDialog, confirm] = useConfirm(
     'Deseja realmente continuar?',
@@ -101,7 +101,7 @@ export const Actions = ({ id, status, role }: Props) => {
           <DropdownMenuItem
             className="cursor-pointer"
             disabled={isPending}
-            // onClick={() => onOpenTransaction(id, false)}
+            onClick={() => onOpenTransaction(id, false)}
           >
             <DollarSign className="size-4 mr-2" />
             Entrada
@@ -109,7 +109,7 @@ export const Actions = ({ id, status, role }: Props) => {
           <DropdownMenuItem
             className="cursor-pointer"
             disabled={isPending}
-            // onClick={() => onOpenTransaction(id, true)}
+            onClick={() => onOpenTransaction(id, true)}
           >
             <TrendingDown className="size-4 mr-2" />
             Despesa

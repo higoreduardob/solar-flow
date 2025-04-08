@@ -18,7 +18,6 @@ type Props = {
   isPending?: boolean
   isExpenses?: boolean
   isTooltip?: boolean
-  disabled?: boolean
 }
 
 export const AmountInput = ({
@@ -28,24 +27,17 @@ export const AmountInput = ({
   isPending,
   isExpenses,
   isTooltip = true,
-  disabled,
 }: Props) => {
   const parsedValue = parseFloat(value)
   const isIncome = parsedValue > 0
   const isExpense = parsedValue < 0
 
-  const onReverseValue = () => {
-    if (!value) return
-    const newValue = parseFloat(value) * -1
-    onChange(newValue.toString())
-  }
-
   useEffect(() => {
-    if (disabled && isExpenses) {
+    if (isExpenses) {
       const newValue = parseFloat(value)
       if (newValue > 0) onChange((newValue * -1).toString())
     }
-  }, [value, disabled, isExpense, onChange]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [value, isExpense, onChange]) // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <div className="relative">
@@ -55,8 +47,6 @@ export const AmountInput = ({
             <TooltipTrigger asChild>
               <button
                 type="button"
-                onClick={onReverseValue}
-                disabled={disabled}
                 className={cn(
                   'bg-slate-400 hover:bg-slate-500 absolute top-1.5 left-1.5 rounded-md p-2 flex items-center justify-center transition',
                   isIncome && 'bg-emerald-500 hover:bg-emerald-600',

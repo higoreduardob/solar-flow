@@ -63,7 +63,7 @@ export const FormDialog = ({
           <DialogDescription>{description}</DialogDescription>
         </DialogHeader>
         {children}
-        <DialogFooter className="flex items-center sm:flex-row flex-col space-y-1">
+        <DialogFooter className="flex items-center sm:flex-row flex-col gap-2">
           {!!id && (
             <ButtonLoading
               type="button"

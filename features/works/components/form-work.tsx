@@ -169,7 +169,6 @@ export const FormWork = ({
                   <AmountInput
                     {...field}
                     placeholder="Informe valor do obra"
-                    disabled={isPending}
                     isPending={isPending}
                     isTooltip={false}
                   />

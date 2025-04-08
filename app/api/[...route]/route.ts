@@ -14,6 +14,7 @@ import equipaments from './equipaments'
 import authenticate from './authenticate'
 import measures from './materials/measures'
 import categories from './materials/categories'
+import transactions from './works/transactions'
 
 const app = new Hono().basePath('/api')
 
@@ -30,6 +31,7 @@ const routes = app
   .route('/categories', categories)
   .route('/equipaments', equipaments)
   .route('/authenticate', authenticate)
+  .route('/transactions', transactions)
 
 // @ts-ignor
 function getAuthConfig(c: Context): AuthConfig {

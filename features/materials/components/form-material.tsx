@@ -141,7 +141,7 @@ export const FormMaterial = ({
                     <AmountInput
                       {...field}
                       placeholder="Informe valor do material"
-                      disabled={isPending}
+                      isPending={isPending}
                       isTooltip={false}
                     />
                   </FormControl>

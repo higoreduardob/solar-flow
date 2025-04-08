@@ -4,6 +4,7 @@ import { useParams } from 'next/navigation'
 
 import { Card, CardContent } from '@/components/ui/card'
 import { FormEditWork } from '@/features/works/components/form-edit-work'
+import { TableTransaction } from '@/features/works/transactions/components/table-transaction'
 import { FormEditWorkEquipament } from '@/features/works/equipaments/components/form-edit-work-equipament'
 
 export default function WorkOpenPage() {
@@ -23,6 +24,8 @@ export default function WorkOpenPage() {
             <FormEditWorkEquipament id={id} />
           </CardContent>
         </Card>
+
+        <TableTransaction workId={id} />
       </div>
     </section>
   )

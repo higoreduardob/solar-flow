@@ -48,11 +48,12 @@ interface DataTableProps<TData, TValue> {
   placeholder: string
   isNonReversibled?: boolean
   isNonExportable?: boolean
+  isFilter?: boolean
   statusFilter?: FilterOptionsProps
   disabled?: boolean
   status?: string
   onDelete: (rows: Row<TData>[]) => void
-  onChangeStatus: (status: string) => void
+  onChangeStatus?: (status: string) => void
   filters?: React.JSX.Element
 }
 
@@ -63,6 +64,7 @@ export function DataTable<TData, TValue>({
   placeholder,
   isNonReversibled,
   isNonExportable,
+  isFilter = true,
   statusFilter,
   disabled,
   status,
@@ -178,15 +180,17 @@ export function DataTable<TData, TValue>({
               className="w-full min-w-32"
               isDisabled={disabled}
             />
-            <SelectFilter
-              placeholder="Selecione status"
-              defaultValue={undefined}
-              value={status}
-              data={statusFilter || FilterStatus}
-              onChange={onChangeStatus}
-              className="w-full min-w-32"
-              isDisabled={disabled}
-            />
+            {isFilter && onChangeStatus && (
+              <SelectFilter
+                placeholder="Selecione status"
+                defaultValue={undefined}
+                value={status}
+                data={statusFilter || FilterStatus}
+                onChange={onChangeStatus}
+                className="w-full min-w-32"
+                isDisabled={disabled}
+              />
+            )}
             <DropdownMenu>
               <DropdownMenuTrigger asChild className="w-full lg:w-fit">
                 <Button
