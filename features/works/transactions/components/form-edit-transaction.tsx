@@ -1,7 +1,10 @@
+import { convertAmountToMiliunits } from '@/lib/utils'
+
 import {
   InsertTransactionFormValues,
   InsertTransactionSchema,
 } from '@/features/works/transactions/schema'
+import { InsertDocumentFormValues } from '@/features/common/schema'
 
 import { useConfirm } from '@/hooks/use-confirm'
 import { useUploadMultipleFiles } from '@/features/common/api/use-upload-file'
@@ -11,8 +14,6 @@ import { useOpenTransaction } from '@/features/works/transactions/hooks/use-open
 import { useDeleteTransaction } from '@/features/works/transactions/api/use-delete-transaction'
 
 import { FormTransaction } from '@/features/works/transactions/components/form-transaction'
-import { convertAmountToMiliunits } from '@/lib/utils'
-import { InsertDocumentFormValues } from '@/features/common/schema'
 
 export const FormEditTransaction = () => {
   const { id, workId, isOpen, isExpenses, onClose } = useOpenTransaction()

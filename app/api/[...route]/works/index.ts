@@ -10,6 +10,7 @@ import { db } from '@/lib/db'
 import { statusFilter } from '@/lib/utils'
 
 import { insertWorkSchema } from '@/features/works/schema'
+import { insertMaterialInWorkSchema } from '@/features/works/materials/schema'
 import { insertEquipamentInWorkSchema } from '@/features/works/equipaments/schema'
 
 const app = new Hono()
@@ -118,6 +119,139 @@ const app = new Hono()
 
       if (!data) {
         return c.json({ error: 'Obra não cadastrada' }, 404)
+      }
+
+      return c.json({ data }, 200)
+    },
+  )
+  .get(
+    '/:id/materials',
+    verifyAuth(),
+    zValidator('param', z.object({ id: z.string().optional() })),
+    async (c) => {
+      const auth = c.get('authUser')
+      const { id } = c.req.valid('param')
+
+      if (!id) {
+        return c.json({ error: 'Identificador não encontrado' }, 400)
+      }
+
+      if (!auth.token?.sub || !auth.token?.selectedEnterprise) {
+        return c.json({ error: 'Usuário não autorizado' }, 401)
+      }
+
+      const user = await db.user.findUnique({ where: { id: auth.token.sub } })
+      if (!user) return c.json({ error: 'Usuário não autorizado' }, 401)
+
+      if (
+        ![
+          UserRole.OWNER as string,
+          UserRole.MANAGER as string,
+          UserRole.EMPLOYEE as string,
+        ].includes(user.role)
+      ) {
+        return c.json({ error: 'Usuário sem autorização' }, 400)
+      }
+      const ownerId = user.role === UserRole.OWNER ? user.id : user.ownerId!
+
+      const enterprise = await db.enterprise.findUnique({
+        where: {
+          id: auth.token.selectedEnterprise.id,
+          owners: {
+            some: {
+              userId: ownerId,
+            },
+          },
+        },
+      })
+      if (!enterprise) {
+        return c.json({ error: 'Usuário não autorizado' }, 401)
+      }
+
+      // TODO: Get workMaterial, fazer tb no equipaments tanto get como patch
+
+      const data = await db.work.findUnique({
+        where: { id, enterpriseId: enterprise.id },
+        select: {
+          materials: {
+            include: {
+              work: { select: { role: true } },
+              material: { select: { name: true } },
+            },
+          },
+          role: true,
+        },
+      })
+
+      if (!data) {
+        return c.json({ error: 'Obra não cadastrada' }, 404)
+      }
+
+      return c.json({ data }, 200)
+    },
+  )
+  .get(
+    '/:id/materials/:materialId',
+    verifyAuth(),
+    zValidator(
+      'param',
+      z.object({
+        id: z.string().optional(),
+        materialId: z.string().optional(),
+      }),
+    ),
+    async (c) => {
+      const auth = c.get('authUser')
+      const { id, materialId } = c.req.valid('param')
+
+      if (!id || !materialId) {
+        return c.json({ error: 'Identificador não encontrado' }, 400)
+      }
+
+      if (!auth.token?.sub || !auth.token?.selectedEnterprise) {
+        return c.json({ error: 'Usuário não autorizado' }, 401)
+      }
+
+      const user = await db.user.findUnique({ where: { id: auth.token.sub } })
+      if (!user) return c.json({ error: 'Usuário não autorizado' }, 401)
+
+      if (
+        ![
+          UserRole.OWNER as string,
+          UserRole.MANAGER as string,
+          UserRole.EMPLOYEE as string,
+        ].includes(user.role)
+      ) {
+        return c.json({ error: 'Usuário sem autorização' }, 400)
+      }
+      const ownerId = user.role === UserRole.OWNER ? user.id : user.ownerId!
+
+      const enterprise = await db.enterprise.findUnique({
+        where: {
+          id: auth.token.selectedEnterprise.id,
+          owners: {
+            some: {
+              userId: ownerId,
+            },
+          },
+        },
+      })
+      if (!enterprise) {
+        return c.json({ error: 'Usuário não autorizado' }, 401)
+      }
+
+      const data = await db.workMaterial.findUnique({
+        where: { workId_materialId: { workId: id, materialId } },
+        select: {
+          materialId: true,
+          amount: true,
+          quantity: true,
+          work: { select: { role: true } },
+        },
+      })
+
+      if (!data) {
+        return c.json({ error: 'Material não cadastrado' }, 404)
       }
 
       return c.json({ data }, 200)
@@ -317,6 +451,82 @@ const app = new Hono()
       })
 
       return c.json({ success: 'Obras bloqueadas' }, 200)
+    },
+  )
+  .post(
+    '/:id/materials',
+    verifyAuth(),
+    zValidator('param', z.object({ id: z.string().optional() })),
+    zValidator('json', insertMaterialInWorkSchema),
+    async (c) => {
+      const auth = c.get('authUser')
+      const { id } = c.req.valid('param')
+      const validatedFields = c.req.valid('json')
+
+      if (!validatedFields) return c.json({ error: 'Campos inválidos' }, 400)
+
+      if (!id) {
+        return c.json({ error: 'Identificador não encontrado' }, 400)
+      }
+
+      if (!auth.token?.sub || !auth.token?.selectedEnterprise) {
+        return c.json({ error: 'Usuário não autorizado' }, 401)
+      }
+
+      const user = await db.user.findUnique({ where: { id: auth.token.sub } })
+      if (!user) return c.json({ error: 'Usuário não autorizado' }, 401)
+
+      if (
+        ![
+          UserRole.OWNER as string,
+          UserRole.MANAGER as string,
+          UserRole.EMPLOYEE as string,
+        ].includes(user.role)
+      ) {
+        return c.json({ error: 'Usuário sem autorização' }, 400)
+      }
+      const ownerId = user.role === UserRole.OWNER ? user.id : user.ownerId!
+
+      const enterprise = await db.enterprise.findUnique({
+        where: {
+          id: auth.token.selectedEnterprise.id,
+          owners: {
+            some: {
+              userId: ownerId,
+            },
+          },
+        },
+      })
+      if (!enterprise) {
+        return c.json({ error: 'Usuário não autorizado' }, 401)
+      }
+
+      const exists = await db.workMaterial.findUnique({
+        where: {
+          workId_materialId: {
+            workId: id,
+            materialId: validatedFields.materialId,
+          },
+        },
+      })
+
+      if (exists) {
+        return c.json({ error: 'Material já adicionado a esta obra' }, 409)
+      }
+
+      // TODO: Improve performance
+
+      await Promise.all([
+        db.workMaterial.create({
+          data: { ...validatedFields, workId: id },
+        }),
+        db.material.update({
+          where: { id: validatedFields.materialId },
+          data: { stock: { decrement: validatedFields.quantity } },
+        }),
+      ])
+
+      return c.json({ success: 'Obra atualizada' }, 200)
     },
   )
   .patch(
@@ -603,6 +813,84 @@ const app = new Hono()
     },
   )
   .patch(
+    '/:id/materials/:materialId',
+    verifyAuth(),
+    zValidator(
+      'param',
+      z.object({
+        id: z.string().optional(),
+        materialId: z.string().optional(),
+      }),
+    ),
+    zValidator('json', insertMaterialInWorkSchema),
+    async (c) => {
+      const auth = c.get('authUser')
+      const { id, materialId } = c.req.valid('param')
+      const validatedFields = c.req.valid('json')
+
+      if (!validatedFields) return c.json({ error: 'Campos inválidos' }, 400)
+
+      if (!id || !materialId) {
+        return c.json({ error: 'Identificador não encontrado' }, 400)
+      }
+
+      if (!auth.token?.sub || !auth.token?.selectedEnterprise) {
+        return c.json({ error: 'Usuário não autorizado' }, 401)
+      }
+
+      const user = await db.user.findUnique({ where: { id: auth.token.sub } })
+      if (!user) return c.json({ error: 'Usuário não autorizado' }, 401)
+
+      if (
+        ![
+          UserRole.OWNER as string,
+          UserRole.MANAGER as string,
+          UserRole.EMPLOYEE as string,
+        ].includes(user.role)
+      ) {
+        return c.json({ error: 'Usuário sem autorização' }, 400)
+      }
+      const ownerId = user.role === UserRole.OWNER ? user.id : user.ownerId!
+
+      const enterprise = await db.enterprise.findUnique({
+        where: {
+          id: auth.token.selectedEnterprise.id,
+          owners: {
+            some: {
+              userId: ownerId,
+            },
+          },
+        },
+      })
+      if (!enterprise) {
+        return c.json({ error: 'Usuário não autorizado' }, 401)
+      }
+
+      const currentMaterial = await db.workMaterial.findUnique({
+        where: { workId_materialId: { materialId, workId: id } },
+        select: { quantity: true },
+      })
+      if (!currentMaterial)
+        return c.json({ error: 'Material não cadastrado' }, 400)
+
+      // TODO: Calculate avg amount
+      const stock = validatedFields.quantity - currentMaterial.quantity
+
+      await Promise.all([
+        db.workMaterial.update({
+          where: { workId_materialId: { materialId, workId: id } },
+          data: { ...validatedFields },
+        }),
+        db.material.update({
+          where: { id: materialId },
+          data: { stock: { decrement: stock } },
+        }),
+      ])
+
+      return c.json({ success: 'Obra atualizada' }, 200)
+    },
+  )
+  .patch(
     '/:id',
     verifyAuth(),
     zValidator('param', z.object({ id: z.string().optional() })),
@@ -708,6 +996,69 @@ const app = new Hono()
       })
 
       return c.json({ success: 'Obra atualizada' }, 200)
+    },
+  )
+  .delete(
+    '/:id/materials/:materialId',
+    verifyAuth(),
+    zValidator(
+      'param',
+      z.object({
+        id: z.string().optional(),
+        materialId: z.string().optional(),
+      }),
+    ),
+    async (c) => {
+      const auth = c.get('authUser')
+      const { id, materialId } = c.req.valid('param')
+
+      if (!id || !materialId) {
+        return c.json({ error: 'Identificador não encontrado' }, 400)
+      }
+
+      if (!auth.token?.sub || !auth.token?.selectedEnterprise) {
+        return c.json({ error: 'Usuário não autorizado' }, 401)
+      }
+
+      const user = await db.user.findUnique({ where: { id: auth.token.sub } })
+      if (!user) return c.json({ error: 'Usuário não autorizado' }, 401)
+
+      if (
+        ![
+          UserRole.OWNER as string,
+          UserRole.MANAGER as string,
+          UserRole.EMPLOYEE as string,
+        ].includes(user.role)
+      ) {
+        return c.json({ error: 'Usuário sem autorização' }, 400)
+      }
+      const ownerId = user.role === UserRole.OWNER ? user.id : user.ownerId!
+
+      const enterprise = await db.enterprise.findUnique({
+        where: {
+          id: auth.token.selectedEnterprise.id,
+          owners: {
+            some: {
+              userId: ownerId,
+            },
+          },
+        },
+      })
+      if (!enterprise) {
+        return c.json({ error: 'Usuário não autorizado' }, 401)
+      }
+
+      // TODO: Improve this
+      const data = await db.workMaterial.delete({
+        where: { workId_materialId: { workId: id, materialId } },
+      })
+
+      await db.material.update({
+        where: { id: materialId },
+        data: { stock: { increment: data.quantity } },
+      })
+
+      return c.json({ success: 'Material removido' }, 200)
     },
   )
   .delete(

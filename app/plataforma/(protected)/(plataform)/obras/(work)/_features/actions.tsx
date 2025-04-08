@@ -17,6 +17,7 @@ import { useCanceledWork } from '@/features/works/api/use-canceled-work'
 import { useUndeleteWork } from '@/features/works/api/use-undelete-work'
 import { useCompletedWork } from '@/features/works/api/use-completed-work'
 import { useNewTransaction } from '@/features/works/transactions/hooks/use-new-transaction'
+import { useNewWorkMaterial } from '@/features/works/materials/hooks/use-new-work-material'
 
 import {
   DropdownMenu,
@@ -35,6 +36,7 @@ type Props = {
 export const Actions = ({ id, status, role }: Props) => {
   const router = useRouter()
   const { onOpen: onOpenTransaction } = useNewTransaction()
+  const { onOpen: onOpenWorkMaterial } = useNewWorkMaterial()
 
   const [ConfirmationDialog, confirm] = useConfirm(
     'Deseja realmente continuar?',
@@ -117,7 +119,7 @@ export const Actions = ({ id, status, role }: Props) => {
           <DropdownMenuItem
             className="cursor-pointer"
             disabled={isPending}
-            // onClick={() => onOpenWorkMaterial(id)}
+            onClick={() => onOpenWorkMaterial(id)}
           >
             <Settings className="size-4 mr-2" />
             Material
