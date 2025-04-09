@@ -79,14 +79,14 @@ export const columns: ColumnDef<ResponseType>[] = [
         </Button>
       )
     },
-    cell: ({ row }) => row.original.customer.name,
+    cell: ({ row }) => row.original.customer,
   },
   {
     accessorKey: 'whatsApp',
     header: () => {
       return <Button variant="ghost">WhatsApp</Button>
     },
-    cell: ({ row }) => row.original.customer.whatsApp,
+    cell: ({ row }) => row.original.whatsApp,
   },
   {
     accessorKey: 'valor',
@@ -150,7 +150,43 @@ export const columns: ColumnDef<ResponseType>[] = [
       </div>
     ),
   },
-  // TODO: Add summary
+  {
+    accessorKey: 'entradas',
+    header: () => {
+      return <Button variant="ghost">Entradas</Button>
+    },
+    cell: ({ row }) => <span>{formatCurrency(row.original.incomes)}</span>,
+  },
+  {
+    accessorKey: 'custos',
+    header: () => {
+      return <Button variant="ghost">Custos</Button>
+    },
+    cell: ({ row }) => {
+      const expenses = row.original.expenses
+
+      return (
+        <span className={cn(expenses < 0 && 'text-red-500')}>
+          {formatCurrency(row.original.expenses)}
+        </span>
+      )
+    },
+  },
+  {
+    accessorKey: 'líquido',
+    header: () => {
+      return <Button variant="ghost">Líquido</Button>
+    },
+    cell: ({ row }) => {
+      const remaining = row.original.remaining
+
+      return (
+        <span className={cn(remaining > 0 && 'text-green-500')}>
+          {formatCurrency(remaining)}
+        </span>
+      )
+    },
+  },
   {
     accessorKey: 'situação',
     header: () => {

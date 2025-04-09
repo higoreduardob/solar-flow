@@ -43,6 +43,7 @@ export const useEditTransaction = (id?: string, workId?: string) => {
         toast.success(res.success)
       }
       queryClient.invalidateQueries({ queryKey: ['transactions'] })
+      queryClient.invalidateQueries({ queryKey: ['works'] })
     },
     onError: (err) => {
       toast.error(err.message)

@@ -4,7 +4,7 @@ import { verifyAuth } from '@hono/auth-js'
 import { createId } from '@paralleldrive/cuid2'
 import { zValidator } from '@hono/zod-validator'
 
-import { UserRole, WorkRole } from '@prisma/client'
+import { Prisma, UserRole, WorkRole } from '@prisma/client'
 
 import { db } from '@/lib/db'
 import { statusFilter } from '@/lib/utils'
@@ -13,6 +13,39 @@ import { insertWorkSchema } from '@/features/works/schema'
 import { insertTeamInWorkSchema } from '@/features/works/teams/schema'
 import { insertMaterialInWorkSchema } from '@/features/works/materials/schema'
 import { insertEquipamentInWorkSchema } from '@/features/works/equipaments/schema'
+
+type EnhancedWorkData = {
+  id: string
+  cod: number
+  amount: number
+  circuitBreaker: number | null
+  uc: string | null
+  isAddressCustomer: boolean
+  coordinates: string | null
+  xLat: string | null
+  yLat: string | null
+  lat: string | null
+  long: string | null
+  obs: string | null
+  status: boolean
+  role: WorkRole
+  orderDate: Date | null
+  equipamentArrivalDate: Date | null
+  startDateOfWork: Date | null
+  approvalDate: Date | null
+  deliveryDate: Date | null
+  createdAt: Date
+  updatedAt: Date
+  enterpriseId: string
+  customerId: string
+  responsibleId: string
+  designerId: string
+  customer: string
+  whatsApp: string
+  expenses: number
+  incomes: number
+  remaining: number
+}
 
 const app = new Hono()
   .get(
@@ -65,15 +98,43 @@ const app = new Hono()
         return c.json({ error: 'Usuário não autorizado' }, 401)
       }
 
-      const roles: WorkRole[] = role
-        ? [role]
-        : ['INPROGRESS', 'COMPLETED', 'CANCELLED']
-
-      const data = await db.work.findMany({
-        where: { enterpriseId: enterprise.id, status, role: { in: roles } },
-        include: { customer: { select: { name: true, whatsApp: true } } },
-        orderBy: { createdAt: 'asc' },
-      })
+      const data = await db.$queryRaw<EnhancedWorkData[]>(
+        Prisma.sql`
+            WITH work_base AS (
+              SELECT 
+                w.*,
+                u.name as customer,
+                u."whatsApp" as "whatsApp"
+              FROM "Work" w
+              LEFT JOIN "User" u ON w."customerId" = u.id
+              WHERE w."enterpriseId" = ${enterprise.id}
+              ${status !== undefined ? Prisma.sql`AND w.status = ${status}` : Prisma.sql``}
+              ${role ? Prisma.sql`AND w.role::text = ${role.toString()}` : Prisma.sql``}
+              ${from ? Prisma.sql`AND w."createdAt" >= ${from}::timestamp` : Prisma.sql``}
+              ${to ? Prisma.sql`AND w."createdAt" <= ${to}::timestamp` : Prisma.sql``}
+            ),
+            financial_data AS (
+              SELECT 
+                w.id as "workId",
+                (COALESCE(SUM(CASE WHEN t.amount < 0 THEN t.amount ELSE 0 END), 0) - 
+                 COALESCE((SELECT SUM(wm.amount) FROM "WorkMaterial" wm WHERE wm."workId" = w.id), 0))::float as expenses,
+                COALESCE(SUM(CASE WHEN t.amount > 0 THEN t.amount ELSE 0 END), 0)::float as incomes,
+                (COALESCE(SUM(t.amount), 0) - 
+                 COALESCE((SELECT SUM(wm.amount) FROM "WorkMaterial" wm WHERE wm."workId" = w.id), 0))::float as remaining
+              FROM "Work" w
+              LEFT JOIN "Transaction" t ON w.id = t."workId"
+              GROUP BY w.id
+            )
+            SELECT 
+              wb.*,
+              COALESCE(fd.expenses, 0) as expenses,
+              COALESCE(fd.incomes, 0) as incomes,
+              COALESCE(fd.remaining, 0) as remaining
+            FROM work_base wb
+            LEFT JOIN financial_data fd ON wb.id = fd."workId"
+            ORDER BY wb."createdAt" ASC
+          `,
+      )
 
       return c.json({ data }, 200)
     },
@@ -575,6 +636,7 @@ const app = new Hono()
         return c.json({ error: 'Usuário não autorizado' }, 401)
       }
 
+      // TODO: calculate amount
       const exists = await db.workMaterial.findUnique({
         where: {
           workId_materialId: {

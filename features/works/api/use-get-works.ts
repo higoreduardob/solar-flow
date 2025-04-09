@@ -13,7 +13,7 @@ export const useGetWorks = () => {
     queryKey: ['works', status, role, from, to],
     queryFn: async () => {
       const response = await client.api['works'].$get({
-        query: { status, role },
+        query: { status, role, from, to },
       })
 
       if (!response.ok) {
@@ -25,11 +25,11 @@ export const useGetWorks = () => {
       const { data } = await response.json()
       return data.map((work) => ({
         ...work,
-        customer: {
-          ...work.customer,
-          whatsApp: phoneMask(work.customer.whatsApp),
-        },
+        whatsApp: phoneMask(work.whatsApp),
         amount: convertAmountFromMiliunits(work.amount),
+        expenses: convertAmountFromMiliunits(work.expenses),
+        incomes: convertAmountFromMiliunits(work.incomes),
+        remaining: convertAmountFromMiliunits(work.remaining),
       }))
     },
   })
