@@ -4,12 +4,13 @@ import { verifyAuth } from '@hono/auth-js'
 import { createId } from '@paralleldrive/cuid2'
 import { zValidator } from '@hono/zod-validator'
 
-import { UserRole } from '@prisma/client'
+import { UserRole, WorkRole } from '@prisma/client'
 
 import { db } from '@/lib/db'
 import { statusFilter } from '@/lib/utils'
 
 import { insertWorkSchema } from '@/features/works/schema'
+import { insertTeamInWorkSchema } from '@/features/works/teams/schema'
 import { insertMaterialInWorkSchema } from '@/features/works/materials/schema'
 import { insertEquipamentInWorkSchema } from '@/features/works/equipaments/schema'
 
@@ -17,10 +18,18 @@ const app = new Hono()
   .get(
     '/',
     verifyAuth(),
-    zValidator('query', z.object({ status: z.string().optional() })),
+    zValidator(
+      'query',
+      z.object({
+        role: z.nativeEnum(WorkRole).optional(),
+        status: z.string().optional(),
+        from: z.string().optional(),
+        to: z.string().optional(),
+      }),
+    ),
     async (c) => {
       const auth = c.get('authUser')
-      const { status: statusValue } = c.req.valid('query')
+      const { role, status: statusValue, from, to } = c.req.valid('query')
 
       const status = statusFilter(statusValue)
 
@@ -56,8 +65,12 @@ const app = new Hono()
         return c.json({ error: 'Usuário não autorizado' }, 401)
       }
 
+      const roles: WorkRole[] = role
+        ? [role]
+        : ['INPROGRESS', 'COMPLETED', 'CANCELLED']
+
       const data = await db.work.findMany({
-        where: { enterpriseId: enterprise.id, status },
+        where: { enterpriseId: enterprise.id, status, role: { in: roles } },
         include: { customer: { select: { name: true, whatsApp: true } } },
         orderBy: { createdAt: 'asc' },
       })
@@ -113,6 +126,65 @@ const app = new Hono()
         where: { id, enterpriseId: enterprise.id },
         select: {
           equipaments: true,
+          role: true,
+        },
+      })
+
+      if (!data) {
+        return c.json({ error: 'Obra não cadastrada' }, 404)
+      }
+
+      return c.json({ data }, 200)
+    },
+  )
+  .get(
+    '/:id/teams',
+    verifyAuth(),
+    zValidator('param', z.object({ id: z.string().optional() })),
+    async (c) => {
+      const auth = c.get('authUser')
+      const { id } = c.req.valid('param')
+
+      if (!id) {
+        return c.json({ error: 'Identificador não encontrado' }, 400)
+      }
+
+      if (!auth.token?.sub || !auth.token?.selectedEnterprise) {
+        return c.json({ error: 'Usuário não autorizado' }, 401)
+      }
+
+      const user = await db.user.findUnique({ where: { id: auth.token.sub } })
+      if (!user) return c.json({ error: 'Usuário não autorizado' }, 401)
+
+      if (
+        ![
+          UserRole.OWNER as string,
+          UserRole.MANAGER as string,
+          UserRole.EMPLOYEE as string,
+        ].includes(user.role)
+      ) {
+        return c.json({ error: 'Usuário sem autorização' }, 400)
+      }
+      const ownerId = user.role === UserRole.OWNER ? user.id : user.ownerId!
+
+      const enterprise = await db.enterprise.findUnique({
+        where: {
+          id: auth.token.selectedEnterprise.id,
+          owners: {
+            some: {
+              userId: ownerId,
+            },
+          },
+        },
+      })
+      if (!enterprise) {
+        return c.json({ error: 'Usuário não autorizado' }, 401)
+      }
+
+      const data = await db.work.findUnique({
+        where: { id, enterpriseId: enterprise.id },
+        select: {
+          teams: true,
           role: true,
         },
       })
@@ -806,6 +878,86 @@ const app = new Hono()
         data: {
           equipaments: {
             deleteMany: { equipamentId: { in: toRemove } },
+            createMany: { data: toAdd || [] },
+          },
+        },
+      })
+
+      return c.json({ success: 'Obra atualizada' }, 200)
+    },
+  )
+  .patch(
+    '/:id/teams',
+    verifyAuth(),
+    zValidator('param', z.object({ id: z.string().optional() })),
+    zValidator('json', insertTeamInWorkSchema),
+    async (c) => {
+      const auth = c.get('authUser')
+      const { id } = c.req.valid('param')
+      const validatedFields = c.req.valid('json')
+
+      if (!validatedFields) return c.json({ error: 'Campos inválidos' }, 400)
+      const { teams } = validatedFields
+
+      if (!id) {
+        return c.json({ error: 'Identificador não encontrado' }, 400)
+      }
+
+      if (!auth.token?.sub || !auth.token?.selectedEnterprise) {
+        return c.json({ error: 'Usuário não autorizado' }, 401)
+      }
+
+      const user = await db.user.findUnique({ where: { id: auth.token.sub } })
+      if (!user) return c.json({ error: 'Usuário não autorizado' }, 401)
+
+      if (
+        ![
+          UserRole.OWNER as string,
+          UserRole.MANAGER as string,
+          UserRole.EMPLOYEE as string,
+        ].includes(user.role)
+      ) {
+        return c.json({ error: 'Usuário sem autorização' }, 400)
+      }
+      const ownerId = user.role === UserRole.OWNER ? user.id : user.ownerId!
+
+      const enterprise = await db.enterprise.findUnique({
+        where: {
+          id: auth.token.selectedEnterprise.id,
+          owners: {
+            some: {
+              userId: ownerId,
+            },
+          },
+        },
+      })
+      if (!enterprise) {
+        return c.json({ error: 'Usuário não autorizado' }, 401)
+      }
+
+      const currentTeams = await db.work.findUnique({
+        where: { id, enterpriseId: enterprise.id },
+        select: {
+          teams: { select: { teamId: true } },
+        },
+      })
+      const assetIds = new Set(teams)
+      const teamIds = new Set(currentTeams?.teams.map((team) => team.teamId))
+
+      const [toAdd, toRemove] = await Promise.all([
+        teams
+          ?.filter((team) => !teamIds.has(team))
+          .map((team) => ({ teamId: team })),
+        currentTeams?.teams
+          .filter((team) => !assetIds.has(team.teamId))
+          .map((team) => team.teamId),
+      ])
+
+      await db.work.update({
+        where: { id, enterpriseId: enterprise.id },
+        data: {
+          teams: {
+            deleteMany: { teamId: { in: toRemove } },
             createMany: { data: toAdd || [] },
           },
         },

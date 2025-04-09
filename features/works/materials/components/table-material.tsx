@@ -12,6 +12,7 @@ import { useBulkDeleteTransactions } from '@/features/works/transactions/api/use
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { DataTable, DataTableLoading } from '@/components/data-table'
+import { SubTitleProtected as SubTitle } from '@/components/title-custom'
 
 export const TableMaterial = ({ workId }: { workId: string }) => {
   const materialsQuery = useGetWorkMaterials(workId)
@@ -37,6 +38,7 @@ export const TableMaterial = ({ workId }: { workId: string }) => {
   return (
     <div className="flex flex-col gap-4">
       <Card className="p-4 bg-transparent">
+        <SubTitle>Materiais</SubTitle>
         <CardContent>
           <Table materials={materials} workId={workId} role={role} />
         </CardContent>
@@ -68,6 +70,7 @@ const Table = ({
       placeholder="material"
       columns={columns}
       data={materials}
+      disabled={isNonInProgress}
       isNonExportable
       isFilter={false}
       onDelete={(row) => {

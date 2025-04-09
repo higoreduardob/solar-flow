@@ -120,6 +120,7 @@ export const FormWork = ({
               disabled={isPending || blocked}
               blocked={blocked}
               onClick={onCompleted}
+              className="sm:w-fit w-full"
             >
               <Timer className="size-4 mr-2" />
               Entregar obra
@@ -130,6 +131,7 @@ export const FormWork = ({
               disabled={isPending || blocked}
               blocked={blocked}
               onClick={onCanceled}
+              className="sm:w-fit w-full"
             >
               <CircleX className="size-4 mr-2" />
               Cancelar obra
@@ -193,6 +195,52 @@ export const FormWork = ({
                     )}
                     disabled
                     placeholder="Fabricante do material"
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+          <FormField
+            control={form.control}
+            name="responsibleId"
+            render={({ field }) => (
+              <FormItem className="w-full">
+                <FormLabel htmlFor="responsible">Responsável</FormLabel>
+                <FormControl>
+                  <SelectCreate
+                    id="responsible"
+                    placeholder="Responsável pela obra"
+                    options={userOptions}
+                    onCreate={onCreateUser}
+                    value={field.value}
+                    onChange={field.onChange}
+                    disabled={isPending}
+                    isLoading={isLoadingUsers}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="designerId"
+            render={({ field }) => (
+              <FormItem className="w-full">
+                <FormLabel htmlFor="designer">Projetista</FormLabel>
+                <FormControl>
+                  <SelectCreate
+                    id="designer"
+                    placeholder="Projetista da obra"
+                    options={userOptions}
+                    onCreate={onCreateUser}
+                    value={field.value}
+                    onChange={field.onChange}
+                    disabled={isPending}
+                    isLoading={isLoadingUsers}
                   />
                 </FormControl>
                 <FormMessage />
@@ -530,53 +578,6 @@ export const FormWork = ({
             />
           </div>
         )}
-        <Separator className="my-4" />
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-          <FormField
-            control={form.control}
-            name="responsibleId"
-            render={({ field }) => (
-              <FormItem className="w-full">
-                <FormLabel htmlFor="responsible">Responsável</FormLabel>
-                <FormControl>
-                  <SelectCreate
-                    id="responsible"
-                    placeholder="Responsável pela obra"
-                    options={userOptions}
-                    onCreate={onCreateUser}
-                    value={field.value}
-                    onChange={field.onChange}
-                    disabled={isPending}
-                    isLoading={isLoadingUsers}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="designerId"
-            render={({ field }) => (
-              <FormItem className="w-full">
-                <FormLabel htmlFor="designer">Projetista</FormLabel>
-                <FormControl>
-                  <SelectCreate
-                    id="designer"
-                    placeholder="Projetista da obra"
-                    options={userOptions}
-                    onCreate={onCreateUser}
-                    value={field.value}
-                    onChange={field.onChange}
-                    disabled={isPending}
-                    isLoading={isLoadingUsers}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
         {id && (
           <>
             <Separator className="my-4" />

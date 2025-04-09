@@ -127,21 +127,20 @@ export function DataTable<TData, TValue>({
               table.getColumn(filterKey)?.setFilterValue(event.target.value)
             }
             className="lg:max-w-sm w-full h-9"
-            disabled={disabled}
           />
 
           <div className="flex items-center gap-2 flex-wrap lg:flex-nowrap w-full lg:w-fit">
             {table.getFilteredSelectedRowModel().rows.length > 0 && (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="outline" disabled={disabled}>
+                  <Button variant="outline">
                     Ações ({table.getFilteredSelectedRowModel().rows.length})
                     <ChevronDown className="ml-2 h-4 w-4" />
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
                   {/* {!isNonExportable && (
-                    <DropdownMenuItem disabled={disabled}>
+                    <DropdownMenuItem}>
                       <Download className="mr-2 h-4 w-4" />
                       Exportar selecionados
                     </DropdownMenuItem>
@@ -178,7 +177,6 @@ export function DataTable<TData, TValue>({
                 table.setPageSize(value)
               }}
               className="w-full min-w-32"
-              isDisabled={disabled}
             />
             {isFilter && onChangeStatus && (
               <SelectFilter
@@ -188,14 +186,12 @@ export function DataTable<TData, TValue>({
                 data={statusFilter || FilterStatus}
                 onChange={onChangeStatus}
                 className="w-full min-w-32"
-                isDisabled={disabled}
               />
             )}
             <DropdownMenu>
               <DropdownMenuTrigger asChild className="w-full lg:w-fit">
                 <Button
                   variant="outline"
-                  disabled={disabled}
                   className="flex items-center justify-between"
                 >
                   Colunas <ChevronDown />
@@ -266,7 +262,7 @@ export function DataTable<TData, TValue>({
                     colSpan={columns.length}
                     className="h-24 text-center"
                   >
-                    Nenhum registro cadastro
+                    Nenhum registro cadastrado
                   </TableCell>
                 </TableRow>
               )}

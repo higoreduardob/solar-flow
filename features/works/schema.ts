@@ -42,9 +42,6 @@ export const insertWorkSchema = z.object({
 
   // TODO: Desacoplar em outro form
   // documents: z.array(insertDocumentSchema).nullish(),
-  // teams: z
-  //   .array(z.string().min(1, { message: 'Colaborador é obrigatório' }))
-  //   .nullish(),
 })
 
 export const insertWorkFormSchema = insertWorkSchema
@@ -103,6 +100,4 @@ export const insertWorkDefaultValues: InsertWorkFormValues = {
   designerId: '',
 
   // documents: null,
-  // teams: null,
-  // materials: null,
 }

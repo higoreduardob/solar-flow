@@ -1,5 +1,3 @@
-'use client'
-
 import { CircleX, EthernetPort, LucideProps, Plus, Sunset } from 'lucide-react'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useFieldArray, useForm } from 'react-hook-form'
@@ -45,11 +43,6 @@ type Props = {
   defaultValues: InsertEquipamentInWorkFormValues
   onSubmit: (values: InsertEquipamentInWorkFormValues) => void
 }
-
-export type FilterOptionsProps = {
-  label: string
-  value: string
-}[]
 
 export const FormWorkEquipament = ({
   isPending,
@@ -97,8 +90,8 @@ export const FormWorkEquipament = ({
             onRemove={(index) => remove(index)}
           />
         </div>
-        <Button type="submit" className="mt-4 w-fit" disabled={isPending}>
-          Salvar equipamentos
+        <Button type="submit" className="sm:w-fit w-full" disabled={isPending}>
+          Salvar
         </Button>
       </form>
     </Form>
@@ -168,7 +161,7 @@ const FormEquipamentRole = ({
 
   return (
     <div className="flex flex-col gap-2">
-      <div className="grid sm:grid-cols-2 gap-2">
+      <div className="grid sm:grid-cols-2 xl:flex items-end gap-2">
         <FormField
           control={form.control}
           name="equipamentId"
@@ -213,6 +206,15 @@ const FormEquipamentRole = ({
             </FormItem>
           )}
         />
+        <Button
+          type="button"
+          className="w-fit"
+          onClick={handleAddEquipament}
+          disabled={!form.formState.isValid}
+        >
+          <Plus className="mr-2" />
+          Adicionar {translateEquipamentRole(role)}
+        </Button>
       </div>
       <CardData
         title={translateEquipamentRole(role)}
@@ -222,15 +224,6 @@ const FormEquipamentRole = ({
         options={options}
         onRemove={onRemove}
       />
-      <Button
-        type="button"
-        className="w-fit mt-2"
-        onClick={handleAddEquipament}
-        disabled={!form.formState.isValid}
-      >
-        <Plus className="mr-2" />
-        Adicionar {translateEquipamentRole(role)}
-      </Button>
     </div>
   )
 }
@@ -293,7 +286,7 @@ const CardData = ({
           </div>
         ) : (
           <span className="text-xs text-muted-foreground">
-            Nenhum registro cadastro
+            Nenhum registro cadastrado
           </span>
         )}
       </CardContent>

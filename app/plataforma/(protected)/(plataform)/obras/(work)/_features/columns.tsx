@@ -10,17 +10,20 @@ import { client } from '@/lib/hono'
 import { translateWorkRole } from '@/lib/i18n'
 import { cn, formatCurrency } from '@/lib/utils'
 
+import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 
 import { Actions } from '@/app/plataforma/(protected)/(plataform)/obras/(work)/_features/actions'
+import { format } from 'date-fns'
+import { ptBR } from 'date-fns/locale'
 
 export function styleWorkRole(role: WorkRole) {
   switch (role) {
     case 'CANCELLED':
       return 'text-red-500'
     case 'COMPLETED':
-      return 'text-yellow-500'
+      return 'text-green-500'
     default:
       return 'text-blue-500'
   }
@@ -55,6 +58,14 @@ export const columns: ColumnDef<ResponseType>[] = [
     enableHiding: false,
   },
   {
+    // TODO: Review se código está sendo incrementado para os vários usuários
+    accessorKey: 'código',
+    header: () => {
+      return <Button variant="ghost">Código</Button>
+    },
+    cell: ({ row }) => row.original.cod,
+  },
+  {
     accessorKey: 'customer',
     enableHiding: false,
     header: ({ column }) => {
@@ -84,6 +95,61 @@ export const columns: ColumnDef<ResponseType>[] = [
     },
     cell: ({ row }) => <span>{formatCurrency(row.original.amount)}</span>,
   },
+  {
+    accessorKey: 'datas',
+    header: () => {
+      return <Button variant="ghost">Datas</Button>
+    },
+    cell: ({ row }) => (
+      <div className="flex flex-col">
+        {row.original.startDateOfWork && (
+          <p className="text-xs">
+            <span className="font-semibold">Início:</span>{' '}
+            {format(row.original.startDateOfWork, 'dd MMMM yyyy', {
+              locale: ptBR,
+            })}
+          </p>
+        )}
+        {row.original.orderDate && (
+          <p className="text-xs">
+            <span className="font-semibold">Pedido:</span>{' '}
+            {format(row.original.orderDate, 'dd MMMM yyyy', {
+              locale: ptBR,
+            })}
+          </p>
+        )}
+        {row.original.deliveryDate && (
+          <p className="text-xs">
+            <span className="font-semibold">Entrega:</span>{' '}
+            {format(row.original.deliveryDate, 'dd MMMM yyyy', {
+              locale: ptBR,
+            })}
+          </p>
+        )}
+        <p className="text-xs">
+          <span className="font-semibold">Cadastro:</span>{' '}
+          {format(row.original.createdAt, 'dd MMMM yyyy', { locale: ptBR })}
+        </p>
+
+        {row.original.approvalDate && (
+          <p className="text-xs">
+            <span className="font-semibold">Homologado:</span>{' '}
+            {format(row.original.approvalDate, 'dd MMMM yyyy', {
+              locale: ptBR,
+            })}
+          </p>
+        )}
+        {row.original.equipamentArrivalDate && (
+          <p className="text-xs">
+            <span className="font-semibold">Recebimento:</span>{' '}
+            {format(row.original.equipamentArrivalDate, 'dd MMMM yyyy', {
+              locale: ptBR,
+            })}
+          </p>
+        )}
+      </div>
+    ),
+  },
   // TODO: Add summary
   {
     accessorKey: 'situação',
@@ -91,9 +157,12 @@ export const columns: ColumnDef<ResponseType>[] = [
       return <Button variant="ghost">Situação</Button>
     },
     cell: ({ row }) => (
-      <span className={cn('uppercase', styleWorkRole(row.original.role))}>
+      <Badge
+        variant="outline"
+        className={cn('uppercase', styleWorkRole(row.original.role))}
+      >
         {translateWorkRole(row.original.role)}
-      </span>
+      </Badge>
     ),
   },
   {

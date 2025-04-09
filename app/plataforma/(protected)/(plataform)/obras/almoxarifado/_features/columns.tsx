@@ -65,7 +65,7 @@ export const columns: ColumnDef<ResponseType>[] = [
       return (
         supplier || (
           <span className="text-xs text-muted-foreground">
-            Nenhum registro cadastro
+            Nenhum registro cadastrado
           </span>
         )
       )

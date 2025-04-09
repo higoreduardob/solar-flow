@@ -64,7 +64,7 @@ export const columns: ColumnDef<ResponseType>[] = [
 
       return (
         <span className="text-muted-foreground text-sm">
-          {products ? `${products} unids` : 'Nenhum registro cadastro'}
+          {products ? `${products} unids` : 'Nenhum registro cadastrado'}
         </span>
       )
     },

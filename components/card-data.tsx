@@ -71,7 +71,7 @@ export const CardData = ({
           </div>
         ) : (
           <span className="text-xs text-muted-foreground">
-            Nenhum registro cadastro
+            Nenhum registro cadastrado
           </span>
         )}
       </CardContent>

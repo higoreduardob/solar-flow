@@ -61,6 +61,7 @@ const app = new Hono()
         where: { enterpriseId: enterprise.id, status },
         include: {
           users: { select: { user: { select: { id: true, name: true } } } },
+          works: { select: { workId: true, work: { select: { cod: true } } } },
         },
         orderBy: { name: 'asc' },
       })

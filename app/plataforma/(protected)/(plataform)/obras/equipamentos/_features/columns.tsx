@@ -5,7 +5,6 @@ import { ArrowUpDown } from 'lucide-react'
 import { ColumnDef } from '@tanstack/react-table'
 
 import { client } from '@/lib/hono'
-import { formatCurrency } from '@/lib/utils'
 import { translateEquipamentRole } from '@/lib/i18n'
 
 import { Actions } from '@/app/plataforma/(protected)/(plataform)/obras/equipamentos/_features/actions'
@@ -68,7 +67,7 @@ export const columns: ColumnDef<ResponseType>[] = [
     header: () => {
       return <Button variant="ghost">Vendidos</Button>
     },
-    cell: ({ row }) => formatCurrency(row.original.sales),
+    cell: ({ row }) => row.original.sales,
   },
   {
     accessorKey: 'tipo',

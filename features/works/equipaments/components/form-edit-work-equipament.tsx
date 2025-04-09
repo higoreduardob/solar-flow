@@ -3,6 +3,7 @@ import { InsertEquipamentInWorkFormValues } from '@/features/works/equipaments/s
 import { useGetWorkEquipaments } from '@/features/works/equipaments/api/use-get-work-equipaments'
 import { useEditWorkEquipaments } from '@/features/works/equipaments/api/use-edit-work-equipaments'
 
+import { Loader } from '@/components/loader'
 import { FormWorkEquipament } from '@/features/works/equipaments/components/form-work-equipament'
 
 type Props = {
@@ -12,6 +13,12 @@ type Props = {
 export const FormEditWorkEquipament = ({ id }: Props) => {
   const equipamentQuery = useGetWorkEquipaments(id)
   const editMutation = useEditWorkEquipaments(id)
+
+  const isLoading = equipamentQuery.isLoading
+
+  if (isLoading) {
+    return <Loader />
+  }
 
   const isPending = editMutation.isPending
 

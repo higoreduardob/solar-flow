@@ -1,3 +1,5 @@
+import { convertAmountToMiliunits } from '@/lib/utils'
+
 import { InsertWorkFormValues } from '@/features/works/schema'
 
 import { useConfirm } from '@/hooks/use-confirm'
@@ -8,7 +10,7 @@ import { useCanceledWork } from '@/features/works/api/use-canceled-work'
 import { useCompletedWork } from '@/features/works/api/use-completed-work'
 
 import { FormWork } from '@/features/works/components/form-work'
-import { convertAmountToMiliunits } from '@/lib/utils'
+import { Loader } from '@/components/loader'
 
 type Props = {
   id: string
@@ -24,6 +26,12 @@ export const FormEditWork = ({ id }: Props) => {
   const editMutation = useEditWork(id)
   const canceledMutation = useCanceledWork(id)
   const completedMutation = useCompletedWork(id)
+
+  const isLoading = workQuery.isLoading
+
+  if (isLoading) {
+    return <Loader />
+  }
 
   const isPending =
     editMutation.isPending ||
@@ -119,7 +127,7 @@ export const FormEditWork = ({ id }: Props) => {
         onClick={handleSubmit}
         disabled={isPending || isNonInProgress}
         blocked={isNonInProgress}
-        className="w-fit mt-4"
+        className="sm:w-fit w-full mt-2"
       >
         Salvar
       </ButtonLoading>
