@@ -248,7 +248,6 @@ export function InputFile({
                 <div className="flex items-center gap-2 overflow-hidden">
                   {getFileIcon(file)}
                   <span className="text-sm truncate w-full max-w-[150px] sm:max-w-[200px]">
-                    {/* TODO: Fix this width */}
                     {file.name}
                   </span>
                 </div>

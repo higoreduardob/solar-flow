@@ -1,14 +1,17 @@
 import { columns } from '@/features/materials/measures/resources/columns'
 
+import { useNewMeasure } from '@/features/materials/measures/hooks/use-new-measure'
 import { useGetMeasures } from '@/features/materials/measures/api/use-get-measures'
 import { useOpenMeasureData } from '@/features/materials/measures/hooks/use-open-measure'
 import { useFilterMeasure } from '@/features/materials/measures/hooks/use-filter-measure'
 import { useBulkDeleteMeasures } from '@/features/materials/measures/api/use-bulk-delete-measures'
 
+import { Button } from '@/components/ui/button'
 import { ContentDialog } from '@/components/content-dialog'
 import { DataTable, DataTableLoading } from '@/components/data-table'
 
 export const TableMeasure = () => {
+  const { onOpen } = useNewMeasure()
   const { isOpen, onClose } = useOpenMeasureData()
   const { onChangeStatus, status } = useFilterMeasure()
   const measuresQuery = useGetMeasures()
@@ -51,6 +54,11 @@ export const TableMeasure = () => {
         }}
         status={status}
         onChangeStatus={onChangeStatus}
+        filters={
+          <div className="flex items-center gap-2">
+            <Button onClick={onOpen}>Adicionar</Button>
+          </div>
+        }
       />
     </ContentDialog>
   )

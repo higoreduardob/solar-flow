@@ -1,14 +1,17 @@
 import { columns } from '@/features/materials/categories/resources/columns'
 
+import { useNewCategory } from '@/features/materials/categories/hooks/use-new-category'
 import { useGetCategories } from '@/features/materials/categories/api/use-get-categories'
 import { useOpenCategoryData } from '@/features/materials/categories/hooks/use-open-category'
 import { useFilterCategory } from '@/features/materials/categories/hooks/use-filter-category'
 import { useBulkDeleteCategories } from '@/features/materials/categories/api/use-bulk-delete-categories'
 
+import { Button } from '@/components/ui/button'
 import { ContentDialog } from '@/components/content-dialog'
 import { DataTable, DataTableLoading } from '@/components/data-table'
 
 export const TableCategory = () => {
+  const { onOpen } = useNewCategory()
   const { isOpen, onClose } = useOpenCategoryData()
   const { onChangeStatus, status } = useFilterCategory()
   const categoriesQuery = useGetCategories()
@@ -51,6 +54,11 @@ export const TableCategory = () => {
         }}
         status={status}
         onChangeStatus={onChangeStatus}
+        filters={
+          <div className="flex items-center gap-2">
+            <Button onClick={onOpen}>Adicionar</Button>
+          </div>
+        }
       />
     </ContentDialog>
   )

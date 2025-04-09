@@ -7,10 +7,10 @@ import { convertAmountFromMiliunits } from '@/lib/utils'
 import { useFilterWork } from '@/features/works/hooks/use-filter-work'
 
 export const useGetWorks = () => {
-  const { status } = useFilterWork()
+  const { status, role } = useFilterWork()
 
   const query = useQuery({
-    queryKey: ['works', status],
+    queryKey: ['works', status, role],
     queryFn: async () => {
       const response = await client.api['works'].$get({
         query: { status },

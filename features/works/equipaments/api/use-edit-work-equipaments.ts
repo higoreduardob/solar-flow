@@ -43,9 +43,7 @@ export const useEditWorkEquipaments = (id?: string) => {
       if ('success' in res) {
         toast.success(res.success)
       }
-      queryClient.invalidateQueries({ queryKey: ['works-equipaments', id] }) // TODO: Refatch failed
-      queryClient.invalidateQueries({ queryKey: ['works', id] }) // TODO: Refatch failed
-      queryClient.invalidateQueries({ queryKey: ['works'] }) // TODO: Refatch failed
+      queryClient.invalidateQueries({ queryKey: ['works-equipaments'] })
     },
     onError: (err) => {
       toast.error(err.message)

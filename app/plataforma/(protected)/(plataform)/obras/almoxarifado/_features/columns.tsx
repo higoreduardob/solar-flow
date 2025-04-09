@@ -60,7 +60,16 @@ export const columns: ColumnDef<ResponseType>[] = [
     header: () => {
       return <Button variant="ghost">Fornecedor</Button>
     },
-    cell: ({ row }) => row.original.supplier,
+    cell: ({ row }) => {
+      const supplier = row.original.supplier
+      return (
+        supplier || (
+          <span className="text-xs text-muted-foreground">
+            Nenhum registro cadastro
+          </span>
+        )
+      )
+    },
   },
   {
     accessorKey: 'preço',

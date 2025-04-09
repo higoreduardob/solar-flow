@@ -1,4 +1,4 @@
-import { Ban, PencilRuler } from 'lucide-react'
+import { PencilRuler, X } from 'lucide-react'
 
 import { WorkRole } from '@prisma/client'
 
@@ -64,8 +64,8 @@ export const Actions = ({ id, workId, role, isExpenses }: Props) => {
             onClick={handleDelete}
             disabled={disabled}
           >
-            <Ban className="size-4 mr-2" />
-            {status ? 'Bloquear' : 'Desbloquear'}
+            <X className="size-4 mr-2" />
+            Excluir
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>

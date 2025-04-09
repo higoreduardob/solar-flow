@@ -113,7 +113,7 @@ export const FormMaterial = ({
           className="flex flex-col gap-2"
           onSubmit={form.handleSubmit(handleSubmit)}
         >
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2">
             <FormField
               control={form.control}
               name="name"
@@ -167,6 +167,26 @@ export const FormMaterial = ({
                 </FormItem>
               )}
             />
+            <FormField
+              control={form.control}
+              name="stock"
+              render={({ field }) => (
+                <FormItem className="w-full">
+                  <FormLabel>Estoque</FormLabel>
+                  <FormControl>
+                    <Input
+                      {...field}
+                      type="number"
+                      disabled={isPending}
+                      placeholder="Quantidade de material"
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+          <div className="grid sm:grid-cols-2 gap-2">
             <FormField
               control={form.control}
               name="categoryId"
@@ -229,24 +249,6 @@ export const FormMaterial = ({
                       onChange={field.onChange}
                       disabled={isPending}
                       isLoading={isLoadingCreateMeasure}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="stock"
-              render={({ field }) => (
-                <FormItem className="w-full">
-                  <FormLabel>Estoque</FormLabel>
-                  <FormControl>
-                    <Input
-                      {...field}
-                      type="number"
-                      disabled={isPending}
-                      placeholder="Quantidade de material"
                     />
                   </FormControl>
                   <FormMessage />

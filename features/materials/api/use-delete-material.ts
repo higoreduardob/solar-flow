@@ -35,7 +35,6 @@ export const useDeleteMaterial = (id?: string) => {
       if ('success' in res) {
         toast.success(res.success)
       }
-      queryClient.invalidateQueries({ queryKey: ['materials', id] })
       queryClient.invalidateQueries({ queryKey: ['materials'] })
     },
     onError: (err) => {

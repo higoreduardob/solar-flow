@@ -56,18 +56,18 @@ export const FormWorkMaterial = ({
 
   const materialsQuery = useGetMaterials()
   const onCreateMaterial = () => onOpenNewMaterial()
-  const materialOptions: FilterOptionsProps = (materialsQuery.data ?? []).map(
-    (material) => ({
-      label: material.name,
-      value: material.id,
-    }),
-  )
+  const materialOptions: FilterOptionsProps = Array.isArray(materialsQuery.data)
+    ? materialsQuery.data.map((material) => ({
+        label: material.name,
+        value: material.id,
+      }))
+    : []
   const isLoadingMaterials = materialsQuery.isLoading
 
   const watchMaterial = form.watch('materialId')
-  const selectedMaterial = materialsQuery.data?.find(
-    (material) => material.id === watchMaterial,
-  )
+  const selectedMaterial = Array.isArray(materialsQuery.data)
+    ? materialsQuery.data.find((material) => material.id === watchMaterial)
+    : undefined
 
   const handleSubmit = (values: InsertMaterialInWorkFormValues) => {
     onSubmit(values)

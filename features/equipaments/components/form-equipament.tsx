@@ -68,7 +68,18 @@ export const FormEquipament = ({
 
   useEffect(() => {
     form.clearErrors()
-  }, [isPlate])
+
+    if (watchRole === 'PLATE') {
+      form.setValue('circuitBreaker', null)
+      form.setValue('mppt', null)
+      form.setValue('quantityString', null)
+    } else {
+      form.setValue('voc', null)
+      form.setValue('isc', null)
+      form.setValue('vmp', null)
+      form.setValue('imp', null)
+    }
+  }, [watchRole, form])
 
   return (
     <FormDialog
@@ -335,7 +346,7 @@ export const FormEquipament = ({
             )}
           </div>
           <Separator className="my-4" />
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 items-center">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-2 items-center">
             <FormField
               control={form.control}
               name="inmetro"

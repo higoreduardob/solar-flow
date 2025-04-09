@@ -38,7 +38,7 @@ export const useCreateEquipament = () => {
       if ('success' in res) {
         toast.success(res.success)
       }
-      queryClient.invalidateQueries({ queryKey: ['equipaments'] }) // TODO: Refatch failed
+      queryClient.invalidateQueries({ queryKey: ['equipaments'] })
     },
     onError: (err) => {
       toast.error(err.message)

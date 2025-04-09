@@ -9,6 +9,7 @@ export const Actions = () => {
 
   return (
     <div className="flex items-center gap-2">
+      {/* TODO: Add Role filter */}
       <Button onClick={onOpen}>Adicionar</Button>
     </div>
   )

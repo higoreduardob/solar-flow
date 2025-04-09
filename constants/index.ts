@@ -1,5 +1,5 @@
 export const FilterStatus: FilterOptionsProps = [
-  { label: 'Todos', value: undefined },
+  { label: 'Todos', value: 'none' },
   { label: 'Ativos', value: 'true' },
   { label: 'Bloqueados', value: 'false' },
 ]

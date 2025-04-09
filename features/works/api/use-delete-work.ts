@@ -35,7 +35,6 @@ export const useDeleteWork = (id?: string) => {
       if ('success' in res) {
         toast.success(res.success)
       }
-      queryClient.invalidateQueries({ queryKey: ['works', id] })
       queryClient.invalidateQueries({ queryKey: ['works'] })
     },
     onError: (err) => {

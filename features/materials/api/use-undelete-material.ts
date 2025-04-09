@@ -38,7 +38,6 @@ export const useUndeleteMaterial = (id?: string) => {
         toast.success(res.success)
       }
       queryClient.invalidateQueries({ queryKey: ['materials'] })
-      queryClient.invalidateQueries({ queryKey: ['materials', id] })
     },
     onError: (err) => {
       toast.error(err.message)

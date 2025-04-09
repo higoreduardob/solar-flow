@@ -70,7 +70,14 @@ export const columns: ColumnDef<ResponseType>[] = [
     header: () => {
       return <Button variant="ghost">Quantidade</Button>
     },
-    cell: ({ row }) => row.original.quantity,
+    cell: ({ row }) => (
+      <p>
+        {row.original.quantity}{' '}
+        <span className="text-zinc-500">
+          {row.original.material.measure?.name}
+        </span>
+      </p>
+    ),
   },
   {
     accessorKey: 'custo',

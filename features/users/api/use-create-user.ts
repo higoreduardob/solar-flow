@@ -36,7 +36,7 @@ export const useCreateUser = () => {
       if ('success' in res) {
         toast.success(res.success)
       }
-      queryClient.invalidateQueries({ queryKey: ['users'] }) // TODO: Refatch failed
+      queryClient.invalidateQueries({ queryKey: ['users'] })
     },
     onError: (err) => {
       toast.error(err.message)

@@ -35,7 +35,6 @@ export const useDeleteEquipament = (id?: string) => {
       if ('success' in res) {
         toast.success(res.success)
       }
-      queryClient.invalidateQueries({ queryKey: ['equipaments', id] })
       queryClient.invalidateQueries({ queryKey: ['equipaments'] })
     },
     onError: (err) => {

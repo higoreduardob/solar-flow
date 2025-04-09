@@ -35,7 +35,6 @@ export const useDeleteCategory = (id?: string) => {
       if ('success' in res) {
         toast.success(res.success)
       }
-      queryClient.invalidateQueries({ queryKey: ['categories', id] })
       queryClient.invalidateQueries({ queryKey: ['categories'] })
     },
     onError: (err) => {

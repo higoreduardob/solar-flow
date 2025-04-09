@@ -78,12 +78,8 @@ export function generateStrongPassword(length: number = 10): string {
 }
 
 export function statusFilter(status?: string) {
-  if (status === undefined) {
-    return undefined
-  }
-
   const regex = /^\s*(true|1|on)\s*$/i
-  return regex.test(status)
+  return status !== 'none' ? regex.test(status!) : undefined
 }
 
 export function convertAmountFromMiliunits(amount: number | null) {

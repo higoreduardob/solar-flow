@@ -45,7 +45,6 @@ export const insertWorkSchema = z.object({
   // teams: z
   //   .array(z.string().min(1, { message: 'Colaborador é obrigatório' }))
   //   .nullish(),
-  // materials: insertMaterialInWorkSchema.nullish(),
 })
 
 export const insertWorkFormSchema = insertWorkSchema

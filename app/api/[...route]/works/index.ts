@@ -176,7 +176,9 @@ const app = new Hono()
           materials: {
             include: {
               work: { select: { role: true } },
-              material: { select: { name: true } },
+              material: {
+                select: { name: true, measure: { select: { name: true } } },
+              },
             },
           },
           role: true,

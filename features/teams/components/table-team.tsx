@@ -11,8 +11,8 @@ import { ContentDialog } from '@/components/content-dialog'
 import { DataTable, DataTableLoading } from '@/components/data-table'
 
 export const TableTeam = () => {
-  const { isOpen, onClose } = useOpenTeamData()
   const { onOpen } = useNewTeam()
+  const { isOpen, onClose } = useOpenTeamData()
   const { onChangeStatus, status } = useFilterTeam()
   const teamsQuery = useGetTeams()
   const teams = teamsQuery.data || []

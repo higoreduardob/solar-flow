@@ -38,7 +38,6 @@ export const useUndeleteCategory = (id?: string) => {
         toast.success(res.success)
       }
       queryClient.invalidateQueries({ queryKey: ['categories'] })
-      queryClient.invalidateQueries({ queryKey: ['categories', id] })
     },
     onError: (err) => {
       toast.error(err.message)

@@ -19,10 +19,12 @@ export const Actions = () => {
   const { onOpen: onOpenTeamData } = useOpenTeamData()
   const { onChangeRole, role } = useFilterUser()
 
-  // TODO: Remove role
+  const excludedRoles = ['ADMINISTRATOR', 'OWNER', 'CUSTOMER']
   const roleOptions: FilterOptionsProps = [
     { label: 'Todos', value: undefined },
-    ...createEnumOptions(UserRole, (key) => translateUserRole(key as UserRole)),
+    ...createEnumOptions(UserRole, (key) =>
+      translateUserRole(key as UserRole),
+    ).filter((option) => !excludedRoles.includes(option.value)),
   ]
 
   return (

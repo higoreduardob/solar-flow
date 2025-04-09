@@ -40,8 +40,7 @@ export const useEditMeasure = (id?: string) => {
       if ('success' in res) {
         toast.success(res.success)
       }
-      queryClient.invalidateQueries({ queryKey: ['measures', id] }) // TODO: Refatch failed
-      queryClient.invalidateQueries({ queryKey: ['measures'] }) // TODO: Refatch failed
+      queryClient.invalidateQueries({ queryKey: ['measures'] })
     },
     onError: (err) => {
       toast.error(err.message)

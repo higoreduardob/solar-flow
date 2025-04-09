@@ -41,8 +41,7 @@ export const useEditCategory = (id?: string) => {
       if ('success' in res) {
         toast.success(res.success)
       }
-      queryClient.invalidateQueries({ queryKey: ['categories', id] }) // TODO: Refatch failed
-      queryClient.invalidateQueries({ queryKey: ['categories'] }) // TODO: Refatch failed
+      queryClient.invalidateQueries({ queryKey: ['categories'] })
     },
     onError: (err) => {
       toast.error(err.message)

@@ -36,7 +36,7 @@ export const useCreateWork = () => {
       if ('success' in res) {
         toast.success(res.success)
       }
-      queryClient.invalidateQueries({ queryKey: ['works'] }) // TODO: Refatch failed
+      queryClient.invalidateQueries({ queryKey: ['works'] })
     },
     onError: (err) => {
       toast.error(err.message)

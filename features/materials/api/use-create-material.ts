@@ -36,7 +36,7 @@ export const useCreateMaterial = () => {
       if ('success' in res) {
         toast.success(res.success)
       }
-      queryClient.invalidateQueries({ queryKey: ['materials'] }) // TODO: Refatch failed
+      queryClient.invalidateQueries({ queryKey: ['materials'] })
     },
     onError: (err) => {
       toast.error(err.message)

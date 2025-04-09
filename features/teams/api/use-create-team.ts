@@ -36,7 +36,7 @@ export const useCreateTeam = () => {
       if ('success' in res) {
         toast.success(res.success)
       }
-      queryClient.invalidateQueries({ queryKey: ['teams'] }) // TODO: Refatch failed
+      queryClient.invalidateQueries({ queryKey: ['teams'] })
     },
     onError: (err) => {
       toast.error(err.message)

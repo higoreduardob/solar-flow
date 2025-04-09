@@ -36,7 +36,6 @@ export const useUndeleteUser = (id?: string) => {
         toast.success(res.success)
       }
       queryClient.invalidateQueries({ queryKey: ['users'] })
-      queryClient.invalidateQueries({ queryKey: ['users', id] })
     },
     onError: (err) => {
       toast.error(err.message)

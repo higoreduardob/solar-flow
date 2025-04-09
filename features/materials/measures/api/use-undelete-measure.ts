@@ -38,7 +38,6 @@ export const useUndeleteMeasure = (id?: string) => {
         toast.success(res.success)
       }
       queryClient.invalidateQueries({ queryKey: ['measures'] })
-      queryClient.invalidateQueries({ queryKey: ['measures', id] })
     },
     onError: (err) => {
       toast.error(err.message)

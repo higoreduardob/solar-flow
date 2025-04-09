@@ -40,7 +40,6 @@ export const useEditTeam = (id?: string) => {
       if ('success' in res) {
         toast.success(res.success)
       }
-      queryClient.invalidateQueries({ queryKey: ['teams', id] })
       queryClient.invalidateQueries({ queryKey: ['teams'] })
     },
     onError: (err) => {

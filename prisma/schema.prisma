@@ -83,27 +83,25 @@ model Enterprise {
   users   User[]            @relation("selectedEnterprise")
   teams   Team[]
 
-  categories  Category[]
-  measures    Measure[]
-  materials   Material[]
-  equipaments Equipament[]
-
+  categories   Category[]
+  measures     Measure[]
+  materials    Material[]
+  equipaments  Equipament[]
   works        Work[]
   transactions Transaction[]
 }
 
 model User {
-  id       String   @id @default(cuid())
-  name     String
-  email    String
-  whatsApp String
-  cpfCnpj  String
-  role     UserRole
-  status   Boolean  @default(true)
-
+  id                 String   @id @default(cuid())
+  name               String
+  email              String
+  whatsApp           String
+  cpfCnpj            String
+  role               UserRole
+  status             Boolean  @default(true)
   password           String?
-  hasAcceptedTerms   Boolean @default(true)
-  isTwoFactorEnabled Boolean @default(false)
+  hasAcceptedTerms   Boolean  @default(true)
+  isTwoFactorEnabled Boolean  @default(false)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -369,8 +367,8 @@ model Work {
   lat         String?
   long        String?
   obs         String?
-  status      Boolean @default(true)
-  role WorkRole @default(INPROGRESS)
+  status      Boolean  @default(true)
+  role        WorkRole @default(INPROGRESS)
 
   orderDate             DateTime?
   equipamentArrivalDate DateTime?

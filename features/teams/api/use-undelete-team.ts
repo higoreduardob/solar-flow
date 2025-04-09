@@ -36,7 +36,6 @@ export const useUndeleteTeam = (id?: string) => {
         toast.success(res.success)
       }
       queryClient.invalidateQueries({ queryKey: ['teams'] })
-      queryClient.invalidateQueries({ queryKey: ['teams', id] })
     },
     onError: (err) => {
       toast.error(err.message)
