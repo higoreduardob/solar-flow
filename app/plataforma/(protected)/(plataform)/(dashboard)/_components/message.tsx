@@ -2,11 +2,14 @@
 
 import Link from 'next/link'
 
-import { DateRangePicker } from '@/components/date-range-picker'
 import { useCurrentUser } from '@/features/auth/hooks/use-current-user'
+import { useFilterSummary } from '@/features/summaries/hooks/use-filter-summary'
+
+import { DateRangePicker } from '@/components/date-range-picker'
 
 export const Message = () => {
   const { user } = useCurrentUser()
+  const { from, to, onChangeFilterDate, onClearFilterDate } = useFilterSummary()
 
   return (
     <div className="flex items-center flex-col sm:flex-row justify-between w-full gap-2">
@@ -35,8 +38,10 @@ export const Message = () => {
         </p>
       </div>
       <DateRangePicker
-        onChangeFilterDate={() => {}}
-        onClearFilterDate={() => {}}
+        from={from}
+        to={to}
+        onChangeFilterDate={onChangeFilterDate}
+        onClearFilterDate={onClearFilterDate}
         className="sm:w-fit"
       />
     </div>
