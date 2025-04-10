@@ -39,9 +39,6 @@ export const insertWorkSchema = z.object({
   designerId: z
     .string({ message: 'Projetista é obrigatório' })
     .min(1, { message: 'Projetista é obrigatório' }),
-
-  // TODO: Desacoplar em outro form
-  // documents: z.array(insertDocumentSchema).nullish(),
 })
 
 export const insertWorkFormSchema = insertWorkSchema
@@ -98,6 +95,4 @@ export const insertWorkDefaultValues: InsertWorkFormValues = {
   customerId: '',
   responsibleId: '',
   designerId: '',
-
-  // documents: null,
 }

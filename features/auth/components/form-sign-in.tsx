@@ -3,7 +3,12 @@ import { useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 
+import { UserRole } from '@prisma/client'
+
 import { SignInFormValues, signInSchema } from '@/features/auth/schema'
+
+import { translateUserRole } from '@/lib/i18n'
+import { createEnumOptions } from '@/lib/utils'
 
 import {
   Form,
@@ -13,6 +18,13 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { Input } from '@/components/ui/input'
 import { FormWrapper } from '@/components/form-wrapper'
 import { InputPassword } from '@/components/input-custom'
@@ -31,6 +43,13 @@ export const FormSignIn = ({
   defaultValues,
   onSubmit,
 }: Props) => {
+  const excludedRoles = ['ADMINISTRATOR', 'CUSTOMER']
+  const roleOptions: FilterOptionsProps = [
+    ...createEnumOptions(UserRole, (key) =>
+      translateUserRole(key as UserRole),
+    ).filter((option) => !excludedRoles.includes(option.value)),
+  ]
+
   const form = useForm<SignInFormValues>({
     resolver: zodResolver(signInSchema),
     defaultValues,
@@ -112,6 +131,35 @@ export const FormSignIn = ({
                   </FormItem>
                 )}
               />
+              {watchRole !== 'ADMINISTRATOR' && watchRole !== 'CUSTOMER' && (
+                <FormField
+                  control={form.control}
+                  name="role"
+                  render={({ field }) => (
+                    <FormItem className="w-full">
+                      <FormLabel>Nível de acesso</FormLabel>
+                      <Select
+                        onValueChange={field.onChange}
+                        defaultValue={field.value}
+                      >
+                        <FormControl>
+                          <SelectTrigger className="w-full">
+                            <SelectValue placeholder="Selecione seu nível de acesso" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {roleOptions.map((role, index) => (
+                            <SelectItem key={index} value={role.value}>
+                              {role.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              )}
               <FormField
                 control={form.control}
                 name="password"

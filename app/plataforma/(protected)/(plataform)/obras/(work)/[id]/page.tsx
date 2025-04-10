@@ -8,6 +8,7 @@ import { FormEditWork } from '@/features/works/components/form-edit-work'
 import { TableMaterial } from '@/features/works/materials/components/table-material'
 import { FormEditWorkTeam } from '@/features/works/teams/components/form-edit-work-team'
 import { TableTransaction } from '@/features/works/transactions/components/table-transaction'
+import { FormEditWorkDocument } from '@/features/works/documents/components/form-edit-work-document'
 import { FormEditWorkEquipament } from '@/features/works/equipaments/components/form-edit-work-equipament'
 
 export default function WorkOpenPage() {
@@ -40,6 +41,13 @@ export default function WorkOpenPage() {
         <TableTransaction workId={id} />
 
         <TableMaterial workId={id} />
+
+        <Card className="p-4 bg-transparent">
+          <SubTitle>Documentos da obra</SubTitle>
+          <CardContent>
+            <FormEditWorkDocument id={id} />
+          </CardContent>
+        </Card>
       </div>
     </section>
   )

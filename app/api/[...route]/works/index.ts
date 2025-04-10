@@ -13,6 +13,8 @@ import { insertWorkSchema } from '@/features/works/schema'
 import { insertTeamInWorkSchema } from '@/features/works/teams/schema'
 import { insertMaterialInWorkSchema } from '@/features/works/materials/schema'
 import { insertEquipamentInWorkSchema } from '@/features/works/equipaments/schema'
+import { insertDocumentInWorkSchema } from '@/features/works/documents/schema'
+import { filterFiles, managerFile } from '@/lib/cloudinary'
 
 type EnhancedWorkData = {
   id: string
@@ -187,6 +189,65 @@ const app = new Hono()
         where: { id, enterpriseId: enterprise.id },
         select: {
           equipaments: true,
+          role: true,
+        },
+      })
+
+      if (!data) {
+        return c.json({ error: 'Obra não cadastrada' }, 404)
+      }
+
+      return c.json({ data }, 200)
+    },
+  )
+  .get(
+    '/:id/documents',
+    verifyAuth(),
+    zValidator('param', z.object({ id: z.string().optional() })),
+    async (c) => {
+      const auth = c.get('authUser')
+      const { id } = c.req.valid('param')
+
+      if (!id) {
+        return c.json({ error: 'Identificador não encontrado' }, 400)
+      }
+
+      if (!auth.token?.sub || !auth.token?.selectedEnterprise) {
+        return c.json({ error: 'Usuário não autorizado' }, 401)
+      }
+
+      const user = await db.user.findUnique({ where: { id: auth.token.sub } })
+      if (!user) return c.json({ error: 'Usuário não autorizado' }, 401)
+
+      if (
+        ![
+          UserRole.OWNER as string,
+          UserRole.MANAGER as string,
+          UserRole.EMPLOYEE as string,
+        ].includes(user.role)
+      ) {
+        return c.json({ error: 'Usuário sem autorização' }, 400)
+      }
+      const ownerId = user.role === UserRole.OWNER ? user.id : user.ownerId!
+
+      const enterprise = await db.enterprise.findUnique({
+        where: {
+          id: auth.token.selectedEnterprise.id,
+          owners: {
+            some: {
+              userId: ownerId,
+            },
+          },
+        },
+      })
+      if (!enterprise) {
+        return c.json({ error: 'Usuário não autorizado' }, 401)
+      }
+
+      const data = await db.work.findUnique({
+        where: { id, enterpriseId: enterprise.id },
+        select: {
+          documents: true,
           role: true,
         },
       })
@@ -940,6 +1001,88 @@ const app = new Hono()
         data: {
           equipaments: {
             deleteMany: { equipamentId: { in: toRemove } },
+            createMany: { data: toAdd || [] },
+          },
+        },
+      })
+
+      return c.json({ success: 'Obra atualizada' }, 200)
+    },
+  )
+  .patch(
+    '/:id/documents',
+    verifyAuth(),
+    zValidator('param', z.object({ id: z.string().optional() })),
+    zValidator('json', insertDocumentInWorkSchema),
+    async (c) => {
+      const auth = c.get('authUser')
+      const { id } = c.req.valid('param')
+      const validatedFields = c.req.valid('json')
+
+      if (!validatedFields) return c.json({ error: 'Campos inválidos' }, 400)
+      const { documents } = validatedFields
+
+      if (!id) {
+        return c.json({ error: 'Identificador não encontrado' }, 400)
+      }
+
+      if (!auth.token?.sub || !auth.token?.selectedEnterprise) {
+        return c.json({ error: 'Usuário não autorizado' }, 401)
+      }
+
+      const user = await db.user.findUnique({ where: { id: auth.token.sub } })
+      if (!user) return c.json({ error: 'Usuário não autorizado' }, 401)
+
+      if (
+        ![
+          UserRole.OWNER as string,
+          UserRole.MANAGER as string,
+          UserRole.EMPLOYEE as string,
+        ].includes(user.role)
+      ) {
+        return c.json({ error: 'Usuário sem autorização' }, 400)
+      }
+      const ownerId = user.role === UserRole.OWNER ? user.id : user.ownerId!
+
+      const enterprise = await db.enterprise.findUnique({
+        where: {
+          id: auth.token.selectedEnterprise.id,
+          owners: {
+            some: {
+              userId: ownerId,
+            },
+          },
+        },
+      })
+      if (!enterprise) {
+        return c.json({ error: 'Usuário não autorizado' }, 401)
+      }
+
+      const currentDocumentIds = await db.work.findUnique({
+        where: { id, enterpriseId: enterprise.id },
+        select: { documents: { select: { publicId: true } } },
+      })
+
+      const { toAdd, toRemove } = await filterFiles(
+        documents,
+        currentDocumentIds?.documents,
+      )
+
+      if (toRemove && toRemove.length > 0) {
+        await Promise.all(
+          toRemove.map(async (item) =>
+            managerFile('documents', item).catch((err) =>
+              c.json({ error: err }, 400),
+            ),
+          ),
+        )
+      }
+
+      await db.work.update({
+        where: { id, enterpriseId: enterprise.id },
+        data: {
+          documents: {
+            deleteMany: { publicId: { in: toRemove } },
             createMany: { data: toAdd || [] },
           },
         },

@@ -33,31 +33,32 @@ export const insertUserSchema = z.object({
   documents: z.array(insertDocumentSchema).nullish(),
 })
 
-export const insertUserFormSchema = insertUserSchema.extend({
-  documents: z.array(insertFileOrDocumentSchema).nullish(),
-})
-// .refine(
-//   (data) => {
-//     if (data.role !== 'CUSTOMER' && (!data.password || !data.repeatPassword))
-//       return false
-//     return true
-//   },
-//   {
-//     message: 'Senha é obrigatório',
-//     path: ['password'],
-//   },
-// )
-// .refine(
-//   (data) => {
-//     if (data.role !== 'CUSTOMER' && data.password !== data.repeatPassword)
-//       return false
-//     return true
-//   },
-//   {
-//     message: 'Repetir deve ser igual a senha',
-//     path: ['repeatPassword'],
-//   },
-// )
+export const insertUserFormSchema = insertUserSchema
+  .extend({
+    documents: z.array(insertFileOrDocumentSchema).nullish(),
+  })
+  .refine(
+    (data) => {
+      if (data.role !== 'CUSTOMER' && (!data.password || !data.repeatPassword))
+        return false
+      return true
+    },
+    {
+      message: 'Senha é obrigatório',
+      path: ['password'],
+    },
+  )
+  .refine(
+    (data) => {
+      if (data.role !== 'CUSTOMER' && data.password !== data.repeatPassword)
+        return false
+      return true
+    },
+    {
+      message: 'Repetir deve ser igual a senha',
+      path: ['repeatPassword'],
+    },
+  )
 
 export type InsertUserSchema = z.infer<typeof insertUserSchema>
 

@@ -60,9 +60,8 @@ export const FormTeam = ({
   const onCreateUser = () => {
     onOpenNewUser('EMPLOYEE')
   }
-  // TODO: Review this isPending
-  const isLoadingUserDocuments =
-    userDocumentsQuery.isPending || userDocumentsQuery.isLoading
+
+  const isLoadingUserDocuments = userDocumentsQuery.isLoading
 
   const userDocumentOptions: FilterOptionsProps = (
     userDocumentsQuery.data ?? []

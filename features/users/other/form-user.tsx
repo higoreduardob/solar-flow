@@ -1,9 +1,11 @@
+import { useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 
 import { UserRole } from '@prisma/client'
 
 import { searchZipCode } from '@/lib/apis'
+import { generateStrongPassword } from '@/lib/utils'
 import { cpfCnpjMask, phoneMask, zipCodeMask } from '@/lib/format'
 
 import {
@@ -67,6 +69,14 @@ export const FormUser = ({
   const handleDelete = () => {
     onDelete?.()
   }
+
+  useEffect(() => {
+    if (watchRole !== 'CUSTOMER') {
+      const password = generateStrongPassword()
+      form.setValue('password', password)
+      form.setValue('repeatPassword', password)
+    }
+  }, [watchRole, form])
 
   return (
     <Form {...form}>

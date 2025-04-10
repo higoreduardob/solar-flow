@@ -1,16 +1,18 @@
 import { z } from 'zod'
 import { Hono } from 'hono'
+import bcrypt from 'bcryptjs'
 import { verifyAuth } from '@hono/auth-js'
 import { createId } from '@paralleldrive/cuid2'
 import { zValidator } from '@hono/zod-validator'
 
-import { UserRole } from '@prisma/client'
+import { Prisma, UserRole } from '@prisma/client'
 
 import { db } from '@/lib/db'
 import { statusFilter } from '@/lib/utils'
 import { filterFiles, managerFile } from '@/lib/cloudinary'
 
 import { insertUserSchema } from '@/features/users/schema'
+import { sendPasswordSignInEmail } from '@/lib/mail'
 
 const app = new Hono()
   .get(
@@ -262,26 +264,33 @@ const app = new Hono()
     if (existingUser)
       return c.json({ error: 'Usuário já cadastrado, para essa empresa' }, 400)
 
-    // TODO: Add password and selected enterprise
-
-    await db.user.create({
-      data: {
-        id: createId(),
-        email,
-        role,
-        owner: {
-          connect: { id: ownerId },
-        },
-        enterpriseBelong: {
-          connect: { id: enterprise.id },
-        },
-        address: {
-          create: { ...address },
-        },
-        documents: { createMany: { data: documents || [] } },
-        ...values,
+    const data: Prisma.UserCreateInput = {
+      id: createId(),
+      email,
+      role,
+      password: null,
+      enterprise: { connect: { id: enterprise.id } },
+      owner: {
+        connect: { id: ownerId },
       },
-    })
+      enterpriseBelong: {
+        connect: { id: enterprise.id },
+      },
+      address: {
+        create: { ...address },
+      },
+      documents: { createMany: { data: documents || [] } },
+      ...values,
+    }
+
+    if (role !== 'CUSTOMER' && password) {
+      const hashedPassword = await bcrypt.hash(password, 10)
+      data.password = hashedPassword
+    }
+
+    await db.user.create({ data })
+    if (role !== 'CUSTOMER' && password)
+      await sendPasswordSignInEmail(email, password)
 
     return c.json({ success: 'Usuário criado' }, 201)
   })
