@@ -53,14 +53,14 @@ const NAV_ITEMS: NavMainProps[] = [
             title: 'Almoxarifado',
             url: '/plataforma/obras/almoxarifado',
           },
-          {
-            title: 'Calendário',
-            url: '/plataforma/obras/calendario',
-          },
-          {
-            title: 'Desempenho',
-            url: '/plataforma/obras/desempenho',
-          },
+          // {
+          //   title: 'Calendário',
+          //   url: '/plataforma/obras/calendario',
+          // },
+          // {
+          //   title: 'Desempenho',
+          //   url: '/plataforma/obras/desempenho',
+          // },
         ],
       },
       {

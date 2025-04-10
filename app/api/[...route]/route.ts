@@ -10,6 +10,7 @@ import works from './works'
 import uploads from './uploads'
 import manager from './manager'
 import materials from './materials'
+import summaries from './summaries'
 import equipaments from './equipaments'
 import authenticate from './authenticate'
 import measures from './materials/measures'
@@ -28,6 +29,7 @@ const routes = app
   .route('/manager', manager)
   .route('/measures', measures)
   .route('/materials', materials)
+  .route('/summaries', summaries)
   .route('/categories', categories)
   .route('/equipaments', equipaments)
   .route('/authenticate', authenticate)

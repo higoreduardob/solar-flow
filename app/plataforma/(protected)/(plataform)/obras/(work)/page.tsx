@@ -12,6 +12,10 @@ import { DataTable, DataTableLoading } from '@/components/data-table'
 import { Actions } from '@/app/plataforma/(protected)/(plataform)/obras/(work)/_components/actions'
 
 export default function WorkPage() {
+  return <Works />
+}
+
+export const Works = () => {
   const { onChangeStatus, status } = useFilterWork()
 
   const worksQuery = useGetWorks()

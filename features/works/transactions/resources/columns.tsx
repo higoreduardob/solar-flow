@@ -16,7 +16,7 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
-import { formatCurrency } from '@/lib/utils'
+import { formatValue } from '@/lib/utils'
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 
@@ -68,7 +68,11 @@ export const columns: ColumnDef<ResponseType>[] = [
     header: () => {
       return <Button variant="ghost">Valor</Button>
     },
-    cell: ({ row }) => formatCurrency(row.original.amount),
+    cell: ({ row }) =>
+      formatValue(row.original.amount, {
+        isCurrency: true,
+        fractionDigits: 2,
+      }),
   },
   {
     accessorKey: 'data',

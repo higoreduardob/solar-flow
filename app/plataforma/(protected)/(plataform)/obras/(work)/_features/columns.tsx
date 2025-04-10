@@ -8,7 +8,7 @@ import { WorkRole } from '@prisma/client'
 
 import { client } from '@/lib/hono'
 import { translateWorkRole } from '@/lib/i18n'
-import { cn, formatCurrency } from '@/lib/utils'
+import { cn, formatValue } from '@/lib/utils'
 
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -93,7 +93,14 @@ export const columns: ColumnDef<ResponseType>[] = [
     header: () => {
       return <Button variant="ghost">Valor da obra</Button>
     },
-    cell: ({ row }) => <span>{formatCurrency(row.original.amount)}</span>,
+    cell: ({ row }) => (
+      <span>
+        {formatValue(row.original.amount, {
+          isCurrency: true,
+          fractionDigits: 2,
+        })}
+      </span>
+    ),
   },
   {
     accessorKey: 'datas',
@@ -155,7 +162,14 @@ export const columns: ColumnDef<ResponseType>[] = [
     header: () => {
       return <Button variant="ghost">Entradas</Button>
     },
-    cell: ({ row }) => <span>{formatCurrency(row.original.incomes)}</span>,
+    cell: ({ row }) => (
+      <span>
+        {formatValue(row.original.incomes, {
+          isCurrency: true,
+          fractionDigits: 2,
+        })}
+      </span>
+    ),
   },
   {
     accessorKey: 'custos',
@@ -167,7 +181,10 @@ export const columns: ColumnDef<ResponseType>[] = [
 
       return (
         <span className={cn(expenses < 0 && 'text-red-500')}>
-          {formatCurrency(row.original.expenses)}
+          {formatValue(row.original.expenses, {
+            isCurrency: true,
+            fractionDigits: 2,
+          })}
         </span>
       )
     },
@@ -182,7 +199,10 @@ export const columns: ColumnDef<ResponseType>[] = [
 
       return (
         <span className={cn(remaining > 0 && 'text-green-500')}>
-          {formatCurrency(remaining)}
+          {formatValue(remaining, {
+            isCurrency: true,
+            fractionDigits: 2,
+          })}
         </span>
       )
     },

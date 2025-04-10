@@ -5,7 +5,7 @@ import { ArrowUpDown } from 'lucide-react'
 import { ColumnDef } from '@tanstack/react-table'
 
 import { client } from '@/lib/hono'
-import { formatCurrency } from '@/lib/utils'
+import { formatValue } from '@/lib/utils'
 
 import { Actions } from '@/app/plataforma/(protected)/(plataform)/obras/almoxarifado/_features/actions'
 
@@ -76,7 +76,11 @@ export const columns: ColumnDef<ResponseType>[] = [
     header: () => {
       return <Button variant="ghost">Preço</Button>
     },
-    cell: ({ row }) => formatCurrency(row.original.amount),
+    cell: ({ row }) =>
+      formatValue(row.original.amount, {
+        isCurrency: true,
+        fractionDigits: 2,
+      }),
   },
   {
     accessorKey: 'estoque',
