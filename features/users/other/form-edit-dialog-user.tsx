@@ -1,13 +1,16 @@
 import { InsertDocumentFormValues } from '@/features/common/schema'
 import { InsertUserFormValues, InsertUserSchema } from '@/features/users/schema'
 
+import {
+  useUploadFile,
+  useUploadMultipleFiles,
+} from '@/features/common/api/use-upload-file'
 import { useConfirm } from '@/hooks/use-confirm'
 import { useGetUser } from '@/features/users/api/use-get-user'
 import { useEditUser } from '@/features/users/api/use-edit-user'
 import { useOpenUser } from '@/features/users/hooks/use-open-user'
 import { useDeleteUser } from '@/features/users/api/use-delete-user'
 import { useUndeleteUser } from '@/features/users/api/use-undelete-user'
-import { useUploadMultipleFiles } from '@/features/common/api/use-upload-file'
 
 import { FormDialogUser } from '@/features/users/other/form-dialog-user'
 
@@ -23,13 +26,16 @@ export const FormEditDialogUser = () => {
   const editMutation = useEditUser(id)
   const deleteMutation = useDeleteUser(id)
   const undeleteMutation = useUndeleteUser(id)
-  const { mutateAsync: uploadFiles, isPending: uploadPending } =
+  const { mutateAsync: uploadFiles, isPending: uploadMultiplePending } =
     useUploadMultipleFiles('users')
+  const { mutateAsync: uploadFile, isPending: uploadPending } =
+    useUploadFile('users')
 
   const isPending =
     editMutation.isPending ||
     deleteMutation.isPending ||
     undeleteMutation.isPending ||
+    uploadMultiplePending ||
     uploadPending
 
   const { data } = userQuery
@@ -62,9 +68,19 @@ export const FormEditDialogUser = () => {
       ) as InsertDocumentFormValues[]
 
       if (documentsToUpload.length > 0) {
-        const uploadedDocuments = await uploadFiles({
-          files: documentsToUpload,
-        })
+        const uploadedDocumentsRaw =
+          documentsToUpload.length === 1
+            ? await uploadFile({
+                file: documentsToUpload[0],
+              })
+            : await uploadFiles({
+                files: documentsToUpload,
+              })
+
+        const uploadedDocuments = Array.isArray(uploadedDocumentsRaw)
+          ? uploadedDocumentsRaw
+          : [uploadedDocumentsRaw]
+
         const allDocuments = [...uploadedDocuments, ...storedDocuments]
 
         handleSubmit({

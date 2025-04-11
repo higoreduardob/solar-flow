@@ -16,7 +16,9 @@ export const insertTransactionSchema = z.object({
 })
 
 export const insertTransactionFormSchema = insertTransactionSchema.extend({
-  amount: z.string().min(1, { message: 'Valor da obra é obrigatório' }),
+  amount: z
+    .string({ message: 'Valor da obra é obrigatório' })
+    .min(1, { message: 'Valor da obra é obrigatório' }),
   documents: z.array(insertFileOrDocumentSchema).nullish(),
 })
 

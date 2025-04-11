@@ -6,8 +6,11 @@ import {
 } from '@/features/works/transactions/schema'
 import { InsertDocumentFormValues } from '@/features/common/schema'
 
+import {
+  useUploadFile,
+  useUploadMultipleFiles,
+} from '@/features/common/api/use-upload-file'
 import { useConfirm } from '@/hooks/use-confirm'
-import { useUploadMultipleFiles } from '@/features/common/api/use-upload-file'
 import { useGetTransaction } from '@/features/works/transactions/api/use-get-transaction'
 import { useEditTransaction } from '@/features/works/transactions/api/use-edit-transaction'
 import { useOpenTransaction } from '@/features/works/transactions/hooks/use-open-transaction'
@@ -26,11 +29,16 @@ export const FormEditTransaction = () => {
   const transactionQuery = useGetTransaction(id)
   const editMutation = useEditTransaction(id, workId)
   const deleteMutation = useDeleteTransaction(id)
-  const { mutateAsync: uploadFiles, isPending: uploadPending } =
+  const { mutateAsync: uploadFiles, isPending: uploadMultiplePending } =
     useUploadMultipleFiles('transactions')
+  const { mutateAsync: uploadFile, isPending: uploadPending } =
+    useUploadFile('transactions')
 
   const isPending =
-    editMutation.isPending || deleteMutation.isPending || uploadPending
+    editMutation.isPending ||
+    deleteMutation.isPending ||
+    uploadMultiplePending ||
+    uploadPending
 
   const { data } = transactionQuery
 
@@ -45,8 +53,6 @@ export const FormEditTransaction = () => {
   const isNonInProgress = data.work.role !== 'INPROGRESS'
 
   const onSubmit = async (values: InsertTransactionFormValues) => {
-    if (isNonInProgress) return
-
     const amount = convertAmountToMiliunits(values.amount)
     const { documents } = values
 
@@ -62,9 +68,19 @@ export const FormEditTransaction = () => {
       ) as InsertDocumentFormValues[]
 
       if (documentsToUpload.length > 0) {
-        const uploadedDocuments = await uploadFiles({
-          files: documentsToUpload,
-        })
+        const uploadedDocumentsRaw =
+          documentsToUpload.length === 1
+            ? await uploadFile({
+                file: documentsToUpload[0],
+              })
+            : await uploadFiles({
+                files: documentsToUpload,
+              })
+
+        const uploadedDocuments = Array.isArray(uploadedDocumentsRaw)
+          ? uploadedDocumentsRaw
+          : [uploadedDocumentsRaw]
+
         const allDocuments = [...uploadedDocuments, ...storedDocuments]
 
         handleSubmit({

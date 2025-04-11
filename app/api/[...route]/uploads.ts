@@ -101,7 +101,6 @@ const app = new Hono()
         return c.json({ error: 'Nenhum arquivo válido enviado' }, 400)
       }
 
-      // TODO: Fix 1 file in array
       const results = await Promise.all(
         files.map(async (file) => await uploadFile(file, folder)),
       )

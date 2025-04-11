@@ -5,9 +5,12 @@ import {
 } from '@/features/users/schema'
 import { InsertDocumentFormValues } from '@/features/common/schema'
 
+import {
+  useUploadFile,
+  useUploadMultipleFiles,
+} from '@/features/common/api/use-upload-file'
 import { useNewUser } from '@/features/users/hooks/use-new-user'
 import { useCreateUser } from '@/features/users/api/use-create-user'
-import { useUploadMultipleFiles } from '@/features/common/api/use-upload-file'
 
 import { FormDialogUser } from '@/features/users/other/form-dialog-user'
 
@@ -15,9 +18,12 @@ export const FormNewDialogUser = () => {
   const { isOpen, role, onClose } = useNewUser()
 
   const mutation = useCreateUser()
-  const { mutateAsync: uploadFiles, isPending: uploadPending } =
+  const { mutateAsync: uploadFiles, isPending: uploadMultiplePending } =
     useUploadMultipleFiles('users')
-  const isPending = mutation.isPending || uploadPending
+  const { mutateAsync: uploadFile, isPending: uploadPending } =
+    useUploadFile('users')
+
+  const isPending = mutation.isPending || uploadMultiplePending || uploadPending
 
   if (!role) return null
 
@@ -36,9 +42,19 @@ export const FormNewDialogUser = () => {
       ) as InsertDocumentFormValues[]
 
       if (documentsToUpload.length > 0) {
-        const uploadedDocuments = await uploadFiles({
-          files: documentsToUpload,
-        })
+        const uploadedDocumentsRaw =
+          documentsToUpload.length === 1
+            ? await uploadFile({
+                file: documentsToUpload[0],
+              })
+            : await uploadFiles({
+                files: documentsToUpload,
+              })
+
+        const uploadedDocuments = Array.isArray(uploadedDocumentsRaw)
+          ? uploadedDocumentsRaw
+          : [uploadedDocumentsRaw]
+
         const allDocuments = [...uploadedDocuments, ...storedDocuments]
 
         handleSubmit({

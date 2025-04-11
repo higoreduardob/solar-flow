@@ -7,7 +7,10 @@ import {
 } from '@/features/works/transactions/schema'
 import { InsertDocumentFormValues } from '@/features/common/schema'
 
-import { useUploadMultipleFiles } from '@/features/common/api/use-upload-file'
+import {
+  useUploadFile,
+  useUploadMultipleFiles,
+} from '@/features/common/api/use-upload-file'
 import { useNewTransaction } from '@/features/works/transactions/hooks/use-new-transaction'
 import { useCreateTransaction } from '@/features/works/transactions/api/use-create-transaction'
 
@@ -17,9 +20,11 @@ export const FormNewTransaction = () => {
   const { isOpen, onClose, workId, isExpenses } = useNewTransaction()
 
   const mutation = useCreateTransaction(workId)
-  const { mutateAsync: uploadFiles, isPending: uploadPending } =
+  const { mutateAsync: uploadFiles, isPending: uploadMultiplePending } =
     useUploadMultipleFiles('transactions')
-  const isPending = mutation.isPending || uploadPending
+  const { mutateAsync: uploadFile, isPending: uploadPending } =
+    useUploadFile('transactions')
+  const isPending = mutation.isPending || uploadMultiplePending || uploadPending
 
   const onSubmit = async (values: InsertTransactionFormValues) => {
     const amount = convertAmountToMiliunits(values.amount)
@@ -37,9 +42,19 @@ export const FormNewTransaction = () => {
       ) as InsertDocumentFormValues[]
 
       if (documentsToUpload.length > 0) {
-        const uploadedDocuments = await uploadFiles({
-          files: documentsToUpload,
-        })
+        const uploadedDocumentsRaw =
+          documentsToUpload.length === 1
+            ? await uploadFile({
+                file: documentsToUpload[0],
+              })
+            : await uploadFiles({
+                files: documentsToUpload,
+              })
+
+        const uploadedDocuments = Array.isArray(uploadedDocumentsRaw)
+          ? uploadedDocumentsRaw
+          : [uploadedDocumentsRaw]
+
         const allDocuments = [...uploadedDocuments, ...storedDocuments]
 
         handleSubmit({

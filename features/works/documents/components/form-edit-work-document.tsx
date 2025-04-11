@@ -4,7 +4,10 @@ import {
 } from '@/features/works/documents/schema'
 import { InsertDocumentFormValues } from '@/features/common/schema'
 
-import { useUploadMultipleFiles } from '@/features/common/api/use-upload-file'
+import {
+  useUploadFile,
+  useUploadMultipleFiles,
+} from '@/features/common/api/use-upload-file'
 import { useGetWorkDocuments } from '@/features/works/documents/api/use-get-work-documents'
 import { useEditWorkDocuments } from '@/features/works/documents/api/use-edit-work-documents'
 
@@ -18,8 +21,10 @@ type Props = {
 export const FormEditWorkDocument = ({ id }: Props) => {
   const equipamentQuery = useGetWorkDocuments(id)
   const editMutation = useEditWorkDocuments(id)
-  const { mutateAsync: uploadFiles, isPending: uploadPending } =
-    useUploadMultipleFiles('documents')
+  const { mutateAsync: uploadFiles, isPending: uploadMultiplePending } =
+    useUploadMultipleFiles('works')
+  const { mutateAsync: uploadFile, isPending: uploadPending } =
+    useUploadFile('works')
 
   const isLoading = equipamentQuery.isLoading
 
@@ -27,7 +32,8 @@ export const FormEditWorkDocument = ({ id }: Props) => {
     return <Loader />
   }
 
-  const isPending = editMutation.isPending
+  const isPending =
+    editMutation.isPending || uploadMultiplePending || uploadPending
 
   const { data } = equipamentQuery
 
@@ -54,9 +60,19 @@ export const FormEditWorkDocument = ({ id }: Props) => {
       ) as InsertDocumentFormValues[]
 
       if (documentsToUpload.length > 0) {
-        const uploadedDocuments = await uploadFiles({
-          files: documentsToUpload,
-        })
+        const uploadedDocumentsRaw =
+          documentsToUpload.length === 1
+            ? await uploadFile({
+                file: documentsToUpload[0],
+              })
+            : await uploadFiles({
+                files: documentsToUpload,
+              })
+
+        const uploadedDocuments = Array.isArray(uploadedDocumentsRaw)
+          ? uploadedDocumentsRaw
+          : [uploadedDocumentsRaw]
+
         const allDocuments = [...uploadedDocuments, ...storedDocuments]
 
         handleSubmit({
