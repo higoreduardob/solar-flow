@@ -26,9 +26,6 @@ export const useGetEquipament = (id?: string) => {
         isc: convertAmountFromMiliunits(data.isc),
         vmp: convertAmountFromMiliunits(data.vmp),
         imp: convertAmountFromMiliunits(data.imp),
-        circuitBreaker: convertAmountFromMiliunits(data.circuitBreaker),
-        mppt: convertAmountFromMiliunits(data.mppt),
-        quantityString: convertAmountFromMiliunits(data.quantityString),
       }
     },
   })

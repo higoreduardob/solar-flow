@@ -25,6 +25,7 @@ import { InputFile } from '@/components/input-file'
 import { FormDialog } from '@/components/form-dialog'
 import { Separator } from '@/components/ui/separator'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
+import { cn } from '@/lib/utils'
 
 type Props = {
   id?: string
@@ -56,7 +57,7 @@ export const FormEquipament = ({
   })
 
   const watchRole = form.watch('role')
-  const isPlate = watchRole === 'PLATE' // TODO: Fix error inverter inputs
+  const isPlate = watchRole === 'PLATE'
 
   const handleSubmit = (values: InsertEquipamentFormValues) => {
     onSubmit(values)
@@ -69,16 +70,24 @@ export const FormEquipament = ({
   useEffect(() => {
     form.clearErrors()
 
-    if (watchRole === 'PLATE') {
-      form.setValue('circuitBreaker', null)
-      form.setValue('mppt', null)
-      form.setValue('quantityString', null)
-    } else {
-      form.setValue('voc', null)
-      form.setValue('isc', null)
-      form.setValue('vmp', null)
-      form.setValue('imp', null)
+    const defaultValuesForRole = {
+      [EquipamentRole.PLATE]: {
+        circuitBreaker: null,
+        mppt: null,
+        quantityString: null,
+      },
+      [EquipamentRole.INVERTER]: {
+        voc: null,
+        isc: null,
+        vmp: null,
+        imp: null,
+      },
     }
+
+    form.reset({
+      ...form.getValues(),
+      ...defaultValuesForRole[watchRole],
+    })
   }, [watchRole, form])
 
   return (
@@ -204,146 +213,143 @@ export const FormEquipament = ({
                 </FormItem>
               )}
             />
-            {isPlate ? (
-              <>
-                <FormField
-                  control={form.control}
-                  name="voc"
-                  render={({ field }) => (
-                    <FormItem className="w-full">
-                      <FormLabel>Open circuit voltage (Voc)</FormLabel>
-                      <FormControl>
-                        <Input
-                          {...field}
-                          type="number"
-                          value={field.value || ''}
-                          disabled={isPending}
-                          placeholder="Voc do equipamento"
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="isc"
-                  render={({ field }) => (
-                    <FormItem className="w-full">
-                      <FormLabel>Short circuit current (Isc)</FormLabel>
-                      <FormControl>
-                        <Input
-                          {...field}
-                          type="number"
-                          value={field.value || ''}
-                          disabled={isPending}
-                          placeholder="Isc do equipamento"
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="vmp"
-                  render={({ field }) => (
-                    <FormItem className="w-full">
-                      <FormLabel>Maximum power voltage (Vmp)</FormLabel>
-                      <FormControl>
-                        <Input
-                          {...field}
-                          type="number"
-                          value={field.value || ''}
-                          disabled={isPending}
-                          placeholder="Vmp do equipamento"
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="imp"
-                  render={({ field }) => (
-                    <FormItem className="w-full">
-                      <FormLabel>Maximum power current (Imp)</FormLabel>
-                      <FormControl>
-                        <Input
-                          {...field}
-                          type="number"
-                          value={field.value || ''}
-                          disabled={isPending}
-                          placeholder="Imp do equipamento"
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </>
-            ) : (
-              <>
-                <FormField
-                  control={form.control}
-                  name="circuitBreaker"
-                  render={({ field }) => (
-                    <FormItem className="w-full">
-                      <FormLabel>Disjuntor de segurança</FormLabel>
-                      <FormControl>
-                        <Input
-                          {...field}
-                          type="number"
-                          value={field.value || ''}
-                          disabled={isPending}
-                          placeholder="Disjuntor de segurança do equipamento"
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="mppt"
-                  render={({ field }) => (
-                    <FormItem className="w-full">
-                      <FormLabel>Quantidade de entrada</FormLabel>
-                      <FormControl>
-                        <Input
-                          {...field}
-                          type="number"
-                          value={field.value || ''}
-                          disabled={isPending}
-                          placeholder="Quantidade de entrada do equipamento"
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="quantityString"
-                  render={({ field }) => (
-                    <FormItem className="w-full">
-                      <FormLabel>Quantidade de string</FormLabel>
-                      <FormControl>
-                        <Input
-                          {...field}
-                          type="number"
-                          value={field.value || ''}
-                          disabled={isPending}
-                          placeholder="Quantidade de string do equipamento"
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </>
-            )}
+            <>
+              <FormField
+                control={form.control}
+                name="voc"
+                render={({ field }) => (
+                  <FormItem className={cn('w-full', !isPlate && 'hidden')}>
+                    <FormLabel>Open circuit voltage (Voc)</FormLabel>
+                    <FormControl>
+                      <Input
+                        {...field}
+                        type="number"
+                        value={field.value || ''}
+                        disabled={isPending}
+                        placeholder="Voc do equipamento"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="isc"
+                render={({ field }) => (
+                  <FormItem className={cn('w-full', !isPlate && 'hidden')}>
+                    <FormLabel>Short circuit current (Isc)</FormLabel>
+                    <FormControl>
+                      <Input
+                        {...field}
+                        type="number"
+                        value={field.value || ''}
+                        disabled={isPending}
+                        placeholder="Isc do equipamento"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="vmp"
+                render={({ field }) => (
+                  <FormItem className={cn('w-full', !isPlate && 'hidden')}>
+                    <FormLabel>Maximum power voltage (Vmp)</FormLabel>
+                    <FormControl>
+                      <Input
+                        {...field}
+                        type="number"
+                        value={field.value || ''}
+                        disabled={isPending}
+                        placeholder="Vmp do equipamento"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="imp"
+                render={({ field }) => (
+                  <FormItem className={cn('w-full', !isPlate && 'hidden')}>
+                    <FormLabel>Maximum power current (Imp)</FormLabel>
+                    <FormControl>
+                      <Input
+                        {...field}
+                        type="number"
+                        value={field.value || ''}
+                        disabled={isPending}
+                        placeholder="Imp do equipamento"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </>
+            <>
+              <FormField
+                control={form.control}
+                name="circuitBreaker"
+                render={({ field }) => (
+                  <FormItem className={cn('w-full', isPlate && 'hidden')}>
+                    <FormLabel>Disjuntor de segurança</FormLabel>
+                    <FormControl>
+                      <Input
+                        {...field}
+                        type="number"
+                        value={field.value || ''}
+                        disabled={isPending}
+                        placeholder="Disjuntor de segurança do equipamento"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="mppt"
+                render={({ field }) => (
+                  <FormItem className={cn('w-full', isPlate && 'hidden')}>
+                    <FormLabel>Quantidade de entrada</FormLabel>
+                    <FormControl>
+                      <Input
+                        {...field}
+                        type="number"
+                        value={field.value || ''}
+                        disabled={isPending}
+                        placeholder="Quantidade de entrada do equipamento"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="quantityString"
+                render={({ field }) => (
+                  <FormItem className={cn('w-full', isPlate && 'hidden')}>
+                    <FormLabel>Quantidade de string</FormLabel>
+                    <FormControl>
+                      <Input
+                        {...field}
+                        type="number"
+                        value={field.value || ''}
+                        disabled={isPending}
+                        placeholder="Quantidade de string do equipamento"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </>
           </div>
           <Separator className="my-4" />
           <div className="grid grid-cols-1 md:grid-cols-2 gap-2 items-center">

@@ -59,9 +59,6 @@ export const FormNewEquipament = () => {
     const isc = convertAmountToMiliunits(values.isc)
     const vmp = convertAmountToMiliunits(values.vmp)
     const imp = convertAmountToMiliunits(values.imp)
-    const circuitBreaker = convertAmountToMiliunits(values.circuitBreaker)
-    const mppt = convertAmountToMiliunits(values.mppt)
-    const quantityString = convertAmountToMiliunits(values.vmp)
 
     mutation.mutate(
       {
@@ -71,9 +68,6 @@ export const FormNewEquipament = () => {
         isc,
         vmp,
         imp,
-        circuitBreaker,
-        mppt,
-        quantityString,
       },
       {
         onSuccess: () => {

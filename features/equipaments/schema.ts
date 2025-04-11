@@ -60,72 +60,55 @@ export const insertEquipamentFormSchema = insertEquipamentSchema
     inmetro: insertFileOrDocumentSchema.nullish(),
     datasheet: insertFileOrDocumentSchema.nullish(),
   })
-  .refine(
-    (data) => {
-      if (data.role === EquipamentRole.PLATE && !data.voc) return false
-      return true
-    },
-    {
-      message: 'Open circuit voltage é obrigatório',
-      path: ['voc'],
-    },
-  )
-  .refine(
-    (data) => {
-      if (data.role === EquipamentRole.PLATE && !data.isc) return false
-      return true
-    },
-    {
-      message: 'Short circuit current é obrigatório',
-      path: ['isc'],
-    },
-  )
-  .refine(
-    (data) => {
-      if (data.role === EquipamentRole.PLATE && !data.vmp) return false
-      return true
-    },
-    {
-      message: 'Maximum power voltage é obrigatório',
-      path: ['vmp'],
-    },
-  )
-  .refine(
-    (data) => {
-      if (data.role === EquipamentRole.PLATE && !data.imp) return false
-      return true
-    },
-    {
-      message: 'Maximum power current é obrigatório',
-      path: ['imp'],
-    },
-  )
-  .refine(
-    (data) => {
-      if (data.role === EquipamentRole.INVERTER && !data.circuitBreaker)
-        return false
-      return true
-    },
-    {
-      message: 'Disjuntor de segurança é obrigatório',
-      path: ['circuitBreaker'],
-    },
-  )
-  .refine(
-    (data) => {
-      if (data.role === EquipamentRole.INVERTER && !data.mppt) return false
-      return true
-    },
-    { message: 'Quantidade de entrada é obrigatório', path: ['mppt'] },
-  )
-  .refine(
-    (data) => {
-      if (data.role === EquipamentRole.INVERTER && !data.quantityString)
-        return false
-      return true
-    },
-    { message: 'Quantidade de string é obrigatório', path: ['quantityString'] },
-  )
+  .superRefine((data, ctx) => {
+    if (data.role === 'PLATE') {
+      if (!data.voc)
+        ctx.addIssue({
+          path: ['voc'],
+          message: 'Open circuit voltage é obrigatório',
+          code: z.ZodIssueCode.custom,
+        })
+      if (!data.isc)
+        ctx.addIssue({
+          path: ['isc'],
+          message: 'Short circuit current é obrigatório',
+          code: z.ZodIssueCode.custom,
+        })
+      if (!data.vmp)
+        ctx.addIssue({
+          path: ['vmp'],
+          message: 'Maximum power voltage é obrigatório',
+          code: z.ZodIssueCode.custom,
+        })
+      if (!data.imp)
+        ctx.addIssue({
+          path: ['imp'],
+          message: 'Maximum power current é obrigatório',
+          code: z.ZodIssueCode.custom,
+        })
+    }
+
+    if (data.role === 'INVERTER') {
+      if (!data.circuitBreaker)
+        ctx.addIssue({
+          path: ['circuitBreaker'],
+          message: 'Disjuntor de segurança é obrigatório',
+          code: z.ZodIssueCode.custom,
+        })
+      if (!data.mppt)
+        ctx.addIssue({
+          path: ['mppt'],
+          message: 'Quantidade de entrada é obrigatório',
+          code: z.ZodIssueCode.custom,
+        })
+      if (!data.quantityString)
+        ctx.addIssue({
+          path: ['quantityString'],
+          message: 'Quantidade de string é obrigatório',
+          code: z.ZodIssueCode.custom,
+        })
+    }
+  })
 
 export type InsertEquipamentSchema = z.infer<typeof insertEquipamentSchema>
 

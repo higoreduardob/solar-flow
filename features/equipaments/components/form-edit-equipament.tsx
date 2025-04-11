@@ -103,9 +103,6 @@ export const FormEditEquipament = () => {
     const isc = convertAmountToMiliunits(values.isc)
     const vmp = convertAmountToMiliunits(values.vmp)
     const imp = convertAmountToMiliunits(values.imp)
-    const circuitBreaker = convertAmountToMiliunits(values.circuitBreaker)
-    const mppt = convertAmountToMiliunits(values.mppt)
-    const quantityString = convertAmountToMiliunits(values.vmp)
 
     editMutation.mutate(
       {
@@ -115,9 +112,6 @@ export const FormEditEquipament = () => {
         isc,
         vmp,
         imp,
-        circuitBreaker,
-        mppt,
-        quantityString,
       },
       {
         onSuccess: () => {
