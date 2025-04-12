@@ -1,5 +1,6 @@
 'use client'
 
+import Link from 'next/link'
 import * as React from 'react'
 import { useTheme } from 'next-themes'
 import { signOut } from 'next-auth/react'
@@ -75,4 +76,21 @@ export const ButtonSignOut = () => {
       <LogOut className="h-[1.2rem] w-[1.2rem]" />
     </Button>
   )
+}
+
+type Props = {
+  children: React.ReactNode
+  mode?: 'modal' | 'redirect' | 'dropdown'
+}
+
+export const ButtonSignIn = ({ children, mode }: Props) => {
+  if (mode === 'modal') {
+    return <span>TODO: Implement auth modal</span>
+  }
+
+  if (mode === 'dropdown') {
+    return <span>TODO: Implement auth dropdown</span>
+  }
+
+  return <Link href="/plataforma">{children}</Link>
 }
