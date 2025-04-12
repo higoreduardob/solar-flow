@@ -1,4 +1,4 @@
-import { UpdateFormValues } from '@/features/auth/schema'
+import { InsertUserFormValues } from '@/features/users/schema'
 
 import { FormDialog } from '@/components/form-dialog'
 import { FormUser } from '@/features/users/components/form-user'
@@ -7,17 +7,19 @@ type Props = {
   id?: string
   isOpen: boolean
   isPending: boolean
+  isNonUpdated?: boolean
   status?: boolean
-  defaultValues: UpdateFormValues
+  defaultValues: InsertUserFormValues
   onDelete?: () => void
   handleClose: () => void
-  onSubmit: (values: UpdateFormValues) => void
+  onSubmit: (values: InsertUserFormValues) => void
 }
 
 export const FormDialogUser = ({
   id,
   isOpen,
   isPending,
+  isNonUpdated = true,
   status,
   defaultValues,
   onDelete,
@@ -38,10 +40,14 @@ export const FormDialogUser = ({
       className="max-w-[90%] md:max-w-3xl"
     >
       <FormUser
+        id={id}
         formId="form-user"
-        defaultValues={defaultValues}
         isPending={isPending}
+        status={status}
+        isNonUpdated={isNonUpdated}
+        defaultValues={defaultValues}
         onSubmit={onSubmit}
+        onDelete={onDelete}
       />
     </FormDialog>
   )

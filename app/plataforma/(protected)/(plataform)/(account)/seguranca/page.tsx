@@ -14,10 +14,10 @@ import { FormUpdatePassword } from '@/features/auth/components/form-update-passw
 export default function SecurityPage() {
   const { user } = useCurrentUser()
 
-  if (!user) return null
-
-  const mutation = useUpdatePassword(user.id)
+  const mutation = useUpdatePassword(user?.id)
   const isPending = mutation.isPending
+
+  if (!user) return null
 
   const onSubmit = (values: UpdatePasswordFormValues) => {
     mutation.mutate(values)

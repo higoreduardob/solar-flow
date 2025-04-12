@@ -20,15 +20,14 @@ import { FormUpdate2FA } from '@/features/auth/components/form-update-2fa'
 export default function AccountPage() {
   const { user, update } = useCurrentUser()
 
-  if (!user) return null
-
-  const { id, isTwoFactorEnabled } = user
-  const mutationUpdate = useUpdate(id)
-  const mutation2fa = useUpdate2fa(id)
+  const mutationUpdate = useUpdate(user?.id)
+  const mutation2fa = useUpdate2fa(user?.id)
   const { mutateAsync: uploadFiles, isPending: uploadMultiplePending } =
     useUploadMultipleFiles('users')
   const { mutateAsync: uploadFile, isPending: uploadPending } =
     useUploadFile('users')
+
+  if (!user) return null
 
   const isPending =
     mutationUpdate.isPending ||
@@ -48,7 +47,7 @@ export default function AccountPage() {
           document !== null &&
           document !== undefined &&
           !(document instanceof File),
-      ) as InsertDocumentFormValues[]
+      )
 
       if (documentsToUpload.length > 0) {
         const uploadedDocumentsRaw =
@@ -94,7 +93,7 @@ export default function AccountPage() {
 
   const onSubmit2fa = () =>
     mutation2fa.mutate(
-      { param: { id } },
+      { param: { id: user.id } },
       {
         onSuccess: async () => {
           update()
@@ -109,7 +108,7 @@ export default function AccountPage() {
           <Title>Conta</Title>
           <FormUpdate2FA
             isPending={mutation2fa.isPending}
-            isTwoFactorEnabled={isTwoFactorEnabled}
+            isTwoFactorEnabled={user.isTwoFactorEnabled}
             onSubmit={onSubmit2fa}
           />
         </div>

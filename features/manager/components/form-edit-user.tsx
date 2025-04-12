@@ -1,7 +1,10 @@
-'use client'
+import { InsertDocumentFormValues } from '@/features/common/schema'
+import { InsertUserFormValues, InsertUserSchema } from '@/features/users/schema'
 
-import { UpdateFormValues } from '@/features/auth/schema'
-
+import {
+  useUploadFile,
+  useUploadMultipleFiles,
+} from '@/features/common/api/use-upload-file'
 import { useConfirm } from '@/hooks/use-confirm'
 import { useGetUser } from '@/features/manager/api/use-get-user'
 import { useOpenUser } from '@/features/users/hooks/use-open-user'
@@ -18,27 +21,87 @@ export const FormEditUser = () => {
   const editMutation = useEditUser(id)
   const deleteMutation = useDeleteUser(id)
   const undeleteMutation = useUndeleteUser(id)
+  const { mutateAsync: uploadFiles, isPending: uploadMultiplePending } =
+    useUploadMultipleFiles('users')
+  const { mutateAsync: uploadFile, isPending: uploadPending } =
+    useUploadFile('users')
 
   const [ConfirmationDialog, confirm] = useConfirm(
     'Deseja realmente continuar?',
     'Após efetuar essa ação, você poderá reverter filtrando suas condições.',
   )
 
-  const isPending = editMutation.isPending
+  const isPending =
+    editMutation.isPending ||
+    deleteMutation.isPending ||
+    undeleteMutation.isPending ||
+    uploadMultiplePending ||
+    uploadPending
 
   const { data } = userQuery
 
   if (!data) return null
 
-  const defaultValues: UpdateFormValues = {
+  const defaultValues: InsertUserFormValues = {
     name: data.name,
-    cpfCnpj: data.cpfCnpj,
+    email: data.email,
     whatsApp: data.whatsApp,
+    cpfCnpj: data.cpfCnpj,
     role: data.role,
     address: data.address,
+    status: data.status,
+    documents: data.documents,
   }
 
-  const onSubmit = (values: UpdateFormValues) => {
+  const onSubmit = async (values: InsertUserFormValues) => {
+    const { documents } = values
+
+    if (documents && documents.length > 0) {
+      const documentsToUpload = documents.filter(
+        (document): document is File => document instanceof File,
+      )
+      const storedDocuments = documents.filter(
+        (document): document is InsertDocumentFormValues =>
+          document !== null &&
+          document !== undefined &&
+          !(document instanceof File),
+      ) as InsertDocumentFormValues[]
+
+      if (documentsToUpload.length > 0) {
+        const uploadedDocumentsRaw =
+          documentsToUpload.length === 1
+            ? await uploadFile({
+                file: documentsToUpload[0],
+              })
+            : await uploadFiles({
+                files: documentsToUpload,
+              })
+
+        const uploadedDocuments = Array.isArray(uploadedDocumentsRaw)
+          ? uploadedDocumentsRaw
+          : [uploadedDocumentsRaw]
+
+        const allDocuments = [...uploadedDocuments, ...storedDocuments]
+
+        handleSubmit({
+          ...values,
+          documents: allDocuments,
+        })
+      } else {
+        handleSubmit({
+          ...values,
+          documents: storedDocuments,
+        })
+      }
+    } else {
+      handleSubmit({
+        ...values,
+        documents: null,
+      })
+    }
+  }
+
+  const handleSubmit = (values: InsertUserSchema) => {
     editMutation.mutate(values, {
       onSuccess: () => {
         onClose()

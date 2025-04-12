@@ -234,7 +234,12 @@ const app = new Hono()
 
       const data = await db.user.findUnique({
         where: { id },
-        include: { address: true },
+        include: {
+          address: true,
+          documents: {
+            omit: { createdAt: true, id: true, updatedAt: true, userId: true },
+          },
+        },
       })
 
       if (!data) {
@@ -321,7 +326,7 @@ const app = new Hono()
       const validatedFields = c.req.valid('json')
 
       if (!validatedFields) return c.json({ error: 'Campos inválidos' }, 400)
-      const { address, ...values } = validatedFields
+      const { address, documents, ...values } = validatedFields
 
       if (!id) {
         return c.json({ error: 'Identificador não encontrado' }, 400)

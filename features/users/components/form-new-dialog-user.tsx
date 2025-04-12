@@ -12,7 +12,7 @@ import {
 import { useNewUser } from '@/features/users/hooks/use-new-user'
 import { useCreateUser } from '@/features/users/api/use-create-user'
 
-import { FormDialogUser } from '@/features/users/other/form-dialog-user'
+import { FormDialogUser } from '@/features/users/components/form-dialog-user'
 
 export const FormNewDialogUser = () => {
   const { isOpen, role, onClose } = useNewUser()

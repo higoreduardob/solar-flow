@@ -1,45 +1,82 @@
+import { useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 
+import { UserRole } from '@prisma/client'
+
 import { searchZipCode } from '@/lib/apis'
+import { generateStrongPassword } from '@/lib/utils'
 import { cpfCnpjMask, phoneMask, zipCodeMask } from '@/lib/format'
 
-import { UpdateFormValues, updateSchema } from '@/features/auth/schema'
+import {
+  insertUserFormSchema,
+  InsertUserFormValues,
+} from '@/features/users/schema'
 
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
   FormMessage,
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
+import { Badge } from '@/components/ui/badge'
+import { Switch } from '@/components/ui/switch'
+import { InputFile } from '@/components/input-file'
+import { Separator } from '@/components/ui/separator'
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 
 type Props = {
+  id?: string
   formId?: string
   isPending: boolean
-  defaultValues: UpdateFormValues
-  onSubmit: (values: UpdateFormValues) => void
+  isNonUpdated?: boolean
+  status?: boolean
+  defaultValues: InsertUserFormValues
+  onSubmit: (values: InsertUserFormValues) => void
+  onDelete?: () => void
 }
 
 export const FormUser = ({
+  id,
   formId,
   isPending,
+  isNonUpdated = true,
+  status,
   defaultValues,
   onSubmit,
+  onDelete,
 }: Props) => {
-  const form = useForm<UpdateFormValues>({
-    resolver: zodResolver(updateSchema),
+  const form = useForm<InsertUserFormValues>({
+    resolver: zodResolver(insertUserFormSchema),
     defaultValues,
     shouldFocusError: true,
     reValidateMode: 'onChange',
     mode: 'all',
   })
 
-  const handleSubmit = (values: UpdateFormValues) => {
+  const watchRole = form.watch('role')
+  const isManager = watchRole === 'MANAGER'
+  const isChangeRole = watchRole !== 'CUSTOMER' && isNonUpdated
+
+  const handleSubmit = (values: InsertUserFormValues) => {
     onSubmit(values)
   }
+
+  const handleDelete = () => {
+    onDelete?.()
+  }
+
+  useEffect(() => {
+    if (watchRole !== 'CUSTOMER') {
+      const password = generateStrongPassword()
+      form.setValue('password', password)
+      form.setValue('repeatPassword', password)
+    }
+  }, [watchRole, form])
 
   return (
     <Form {...form}>
@@ -48,6 +85,82 @@ export const FormUser = ({
         onSubmit={form.handleSubmit(handleSubmit)}
         className="flex flex-col gap-2"
       >
+        <div className="flex items-center justify-between">
+          {isChangeRole && (
+            <FormField
+              control={form.control}
+              name="role"
+              render={({ field }) => (
+                <FormItem className="w-full">
+                  <FormLabel>Privilégio do usuário</FormLabel>
+                  <FormControl>
+                    <RadioGroup
+                      onValueChange={(value) => {
+                        field.onChange(value)
+                      }}
+                      defaultValue={field.value}
+                      className="flex items-center gap-3"
+                    >
+                      <FormItem>
+                        <FormControl>
+                          <RadioGroupItem
+                            value={UserRole.MANAGER}
+                            className="hidden"
+                          />
+                        </FormControl>
+                        <FormLabel className="cursor-pointer">
+                          <Badge variant={isManager ? 'default' : 'outline'}>
+                            Gerente
+                          </Badge>
+                        </FormLabel>
+                      </FormItem>
+                      <FormItem>
+                        <FormControl>
+                          <RadioGroupItem
+                            value={UserRole.EMPLOYEE}
+                            className="hidden"
+                          />
+                        </FormControl>
+                        <FormLabel className="cursor-pointer">
+                          <Badge variant={isManager ? 'outline' : 'default'}>
+                            Colaborador
+                          </Badge>
+                        </FormLabel>
+                      </FormItem>
+                    </RadioGroup>
+                  </FormControl>
+                  <FormMessage />
+                  <FormDescription className="!line-clamp-1">
+                    Nível de acesso do usuário
+                  </FormDescription>
+                </FormItem>
+              )}
+            />
+          )}
+          {id && (
+            <div className="ml-auto flex justify-end">
+              <FormField
+                control={form.control}
+                name="status"
+                render={() => (
+                  <FormItem className="flex items-center gap-3">
+                    <FormLabel htmlFor="status">
+                      {status ? 'Bloquear' : 'Desbloquear'}
+                    </FormLabel>
+                    <FormControl>
+                      <Switch
+                        id="status"
+                        checked={!status}
+                        onCheckedChange={handleDelete}
+                      />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+            </div>
+          )}
+        </div>
+
         <h4 className="text-sm">Informações pessoais</h4>
         <div className="flex flex-col gap-2 md:flex-row">
           <FormField
@@ -59,7 +172,25 @@ export const FormUser = ({
                 <FormControl>
                   <Input
                     {...field}
-                    placeholder="Informe seu nome"
+                    placeholder="Informe o nome"
+                    disabled={isPending}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="email"
+            render={({ field }) => (
+              <FormItem className="w-full">
+                <FormLabel>Email</FormLabel>
+                <FormControl>
+                  <Input
+                    {...field}
+                    type="email"
+                    placeholder="Informe o email"
                     disabled={isPending}
                   />
                 </FormControl>
@@ -110,6 +241,8 @@ export const FormUser = ({
             )}
           />
         </div>
+
+        <Separator className="my-4" />
 
         <h4 className="text-sm">Informações de endereço</h4>
         <div className="flex flex-col gap-2 md:flex-row">
@@ -257,6 +390,28 @@ export const FormUser = ({
             )}
           />
         </div>
+        <Separator className="my-4" />
+        <FormField
+          control={form.control}
+          name="documents"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Múltiplos documentos</FormLabel>
+              <FormControl>
+                <InputFile
+                  value={field.value}
+                  onChange={field.onChange}
+                  multiple={true}
+                  disabled={isPending}
+                />
+              </FormControl>
+              <FormDescription>
+                Envie vários documentos (PDF, DOCX, PNG, etc.)
+              </FormDescription>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
       </form>
     </Form>
   )

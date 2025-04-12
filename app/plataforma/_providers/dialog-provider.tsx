@@ -16,8 +16,8 @@ import { FormEditMeasure } from '@/features/materials/measures/components/form-e
 import { FormNewEquipament } from '@/features/equipaments/components/form-new-equipament'
 import { FormEditEquipament } from '@/features/equipaments/components/form-edit-equipament'
 
-import { FormNewDialogUser } from '@/features/users/other/form-new-dialog-user'
-import { FormEditDialogUser } from '@/features/users/other/form-edit-dialog-user'
+import { FormNewDialogUser } from '@/features/users/components/form-new-dialog-user'
+import { FormEditDialogUser } from '@/features/users/components/form-edit-dialog-user'
 
 import { TableTeam } from '@/features/teams/components/table-team'
 import { FormNewTeam } from '@/features/teams/components/form-new-team'

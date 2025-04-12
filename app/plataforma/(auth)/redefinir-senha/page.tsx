@@ -15,18 +15,17 @@ import { FormResetPassword } from '@/features/auth/components/form-reset-passwor
 export default function ResetPasswordPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const url = '/plataforma/entrar'
+  const token = searchParams.get('token') ?? undefined
+  const mutation = useResetPassword(token)
 
-  const token = searchParams.get('token')
+  const isPending = mutation.isPending
+  const url = '/plataforma/entrar'
 
   if (!token) {
     toast.error('Token inválido')
     router.push(url)
     return null
   }
-
-  const mutation = useResetPassword(token)
-  const isPending = mutation.isPending
 
   const defaultValues: ResetPasswordFormValues = {
     ...resetPasswordDefaultValues,

@@ -12,7 +12,7 @@ import { useOpenUser } from '@/features/users/hooks/use-open-user'
 import { useDeleteUser } from '@/features/users/api/use-delete-user'
 import { useUndeleteUser } from '@/features/users/api/use-undelete-user'
 
-import { FormDialogUser } from '@/features/users/other/form-dialog-user'
+import { FormDialogUser } from '@/features/users/components/form-dialog-user'
 
 export const FormEditDialogUser = () => {
   const { id, isOpen, onClose } = useOpenUser()
