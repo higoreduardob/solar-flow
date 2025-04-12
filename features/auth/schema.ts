@@ -6,6 +6,8 @@ import {
   addressDefaultValues,
   addressSchema,
   cpfCnpjSchema,
+  insertDocumentSchema,
+  insertFileOrDocumentSchema,
   passwordSchema,
   whatsAppSchema,
 } from '@/features/common/schema'
@@ -83,9 +85,16 @@ export const updateSchema = z.object({
   cpfCnpj: cpfCnpjSchema,
   role: z.nativeEnum(UserRole, { message: 'Privilégio é obrigatório' }),
   address: addressSchema,
+  documents: z.array(insertDocumentSchema).nullish(),
 })
 
-export type UpdateFormValues = z.infer<typeof updateSchema>
+export const updateFormSchema = updateSchema.extend({
+  documents: z.array(insertFileOrDocumentSchema).nullish(),
+})
+
+export type UpdateSchema = z.infer<typeof updateSchema>
+
+export type UpdateFormValues = z.infer<typeof updateFormSchema>
 
 export const updatePasswordSchema = z
   .object({

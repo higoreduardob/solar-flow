@@ -390,9 +390,7 @@ export const FormUser = ({
             )}
           />
         </div>
-
         <Separator className="my-4" />
-
         <FormField
           control={form.control}
           name="documents"

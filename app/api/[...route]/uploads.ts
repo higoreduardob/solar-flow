@@ -36,6 +36,7 @@ const app = new Hono()
 
       if (
         ![
+          UserRole.ADMINISTRATOR as string,
           UserRole.OWNER as string,
           UserRole.MANAGER as string,
           UserRole.EMPLOYEE as string,
@@ -78,6 +79,7 @@ const app = new Hono()
 
       if (
         ![
+          UserRole.ADMINISTRATOR as string,
           UserRole.OWNER as string,
           UserRole.MANAGER as string,
           UserRole.EMPLOYEE as string,

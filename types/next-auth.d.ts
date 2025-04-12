@@ -2,7 +2,10 @@ import { type DefaultSession, User } from 'next-auth'
 
 import { UserRole } from '@prisma/client'
 
-import { AddressFormValues } from '@/features/common/schema'
+import {
+  AddressFormValues,
+  InsertFileOrDocumentFormValues,
+} from '@/features/common/schema'
 
 export type ExtendedUser = DefaultSession['user'] & {
   role: UserRole
@@ -15,6 +18,7 @@ export type ExtendedUser = DefaultSession['user'] & {
     id: string
     name: string
   } | null
+  documents: InsertFileOrDocumentFormValues[] | null
 }
 
 declare module 'next-auth' {
@@ -37,5 +41,6 @@ declare module '@auth/core/jwt' {
       id: string
       name: string
     } | null
+    documents: InsertFileOrDocumentFormValues[] | null
   }
 }

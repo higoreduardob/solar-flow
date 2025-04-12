@@ -27,7 +27,8 @@ export function formattedAddress(address: AddressFormValues | null) {
 }
 
 export function mapSessionToUpdateData(sessionUser: ExtendedUser) {
-  const { name, email, role, whatsApp, cpfCnpj, address } = sessionUser
+  const { name, email, role, whatsApp, cpfCnpj, address, documents } =
+    sessionUser
 
   const updateData = {
     name,
@@ -36,6 +37,7 @@ export function mapSessionToUpdateData(sessionUser: ExtendedUser) {
     whatsApp: phoneMask(whatsApp),
     cpfCnpj: cpfCnpjMask(cpfCnpj),
     address: formattedAddress(address),
+    documents,
   }
 
   return updateData as UpdateFormValues

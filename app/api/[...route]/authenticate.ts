@@ -23,6 +23,7 @@ import {
   updatePasswordSchema,
   updateSchema,
 } from '@/features/auth/schema'
+import { filterFiles, managerFile } from '@/lib/cloudinary'
 
 const app = new Hono()
   .post('/sign-in/validate', verifyAuth(), async (c) => {
@@ -350,7 +351,7 @@ const app = new Hono()
       const validatedFields = c.req.valid('json')
 
       if (!validatedFields) return c.json({ error: 'Campos inválidos' }, 400)
-      const { address, ...values } = validatedFields
+      const { address, documents, ...values } = validatedFields
 
       if (!id) {
         return c.json({ error: 'Identificador não encontrado' }, 400)
@@ -365,6 +366,26 @@ const app = new Hono()
       })
       if (!user) return c.json({ error: 'Usuário não autorizado' }, 401)
 
+      const currentDocumentIds = await db.user.findUnique({
+        where: { id: user.id },
+        select: { documents: { select: { publicId: true } } },
+      })
+
+      const { toAdd, toRemove } = await filterFiles(
+        documents,
+        currentDocumentIds?.documents,
+      )
+
+      if (toRemove && toRemove.length > 0) {
+        await Promise.all(
+          toRemove.map(async (item) =>
+            managerFile('users', item).catch((err) =>
+              c.json({ error: err }, 400),
+            ),
+          ),
+        )
+      }
+
       await db.user.update({
         where: { id: user.id },
         data: {
@@ -374,6 +395,10 @@ const app = new Hono()
               create: { ...address },
               update: { ...address },
             },
+          },
+          documents: {
+            deleteMany: { publicId: { in: toRemove } },
+            createMany: { data: toAdd || [] },
           },
         },
       })
