@@ -4,12 +4,12 @@ import { client } from '@/lib/hono'
 import { formattedAddress } from '@/lib/utils'
 import { cpfCnpjMask, phoneMask } from '@/lib/format'
 
-export const useGetUser = (id?: string) => {
+export const useGetEnterprise = (id?: string) => {
   const query = useQuery({
     enabled: !!id,
-    queryKey: ['users', id],
+    queryKey: ['enterprises', id],
     queryFn: async () => {
-      const response = await client.api['manager'][':id'].$get({
+      const response = await client.api['manager']['enterprises'][':id'].$get({
         param: { id },
       })
 

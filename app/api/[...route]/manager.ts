@@ -14,6 +14,7 @@ import { generateVerificationToken } from '@/lib/helpers'
 
 import { signUpSchema, updateSchema } from '@/features/auth/schema'
 import { insertEnterpriseSchema } from '@/features/enterprise/schema'
+import { insertOwnerSchema } from '@/features/manager/schema'
 
 const app = new Hono()
   .post(
@@ -165,6 +166,60 @@ const app = new Hono()
       return c.json({ success: 'Empresa criada' }, 201)
     },
   )
+  .post('/users', verifyAuth(), zValidator('json', signUpSchema), async (c) => {
+    const auth = c.get('authUser')
+    const validatedFields = c.req.valid('json')
+
+    if (!validatedFields) return c.json({ error: 'Campos inválidos' }, 400)
+
+    if (!auth.token?.sub) {
+      return c.json({ error: 'Usuário não autorizado' }, 401)
+    }
+
+    const user = await db.user.findUnique({ where: { id: auth.token.sub } })
+    if (!user) return c.json({ error: 'Usuário não autorizado' }, 401)
+
+    if (![UserRole.ADMINISTRATOR as string].includes(user.role)) {
+      return c.json({ error: 'Usuário sem autorização' }, 401)
+    }
+
+    const {
+      email,
+      password,
+      repeatPassword,
+      hasAcceptedTerms,
+      role,
+      address,
+      ...values
+    } = validatedFields
+
+    if (!hasAcceptedTerms)
+      return c.json({ error: 'Termos são obrigatórios' }, 400)
+
+    if (password !== repeatPassword)
+      return c.json({ error: 'Senhas devem ser iguais' }, 400)
+
+    const existingUser = await db.user.findUnique({
+      where: { unique_email_per_role: { email, role } },
+    })
+    if (existingUser) return c.json({ error: 'Email já cadastrado' }, 400)
+
+    const hashedPassword = await bcrypt.hash(password, 10)
+    await db.user.create({
+      data: {
+        ...values,
+        id: createId(),
+        email,
+        password: hashedPassword,
+        hasAcceptedTerms,
+        role,
+        address: { create: { ...address } },
+      },
+    })
+    await sendPasswordSignInEmail(email, password)
+
+    return c.json({ success: 'Usuário criado' }, 201)
+  })
   .get(
     '/',
     verifyAuth(),
@@ -205,6 +260,155 @@ const app = new Hono()
         include: { address: true },
       })
       const data = users.map(({ password, ...rest }) => rest)
+
+      return c.json({ data }, 200)
+    },
+  )
+  .get('/enterprises', verifyAuth(), async (c) => {
+    const auth = c.get('authUser')
+
+    if (!auth.token?.sub) {
+      return c.json({ error: 'Usuário não autorizado' }, 401)
+    }
+
+    const user = await db.user.findUnique({ where: { id: auth.token.sub } })
+    if (!user) return c.json({ error: 'Usuário não autorizado' }, 401)
+
+    if (![UserRole.ADMINISTRATOR as string].includes(user.role)) {
+      return c.json({ error: 'Usuário sem autorização' }, 401)
+    }
+
+    const data = await db.enterprise.findMany({
+      include: {
+        address: true,
+        owners: { select: { user: { select: { id: true, name: true } } } },
+      },
+    })
+
+    return c.json({ data }, 200)
+  })
+  .get(
+    '/enterprises/:id/documents',
+    verifyAuth(),
+    zValidator(
+      'query',
+      z.object({
+        role: z.nativeEnum(UserRole).optional(),
+      }),
+    ),
+    zValidator('param', z.object({ id: z.string().optional() })),
+    async (c) => {
+      const auth = c.get('authUser')
+      const { id } = c.req.valid('param')
+      const { role } = c.req.valid('query')
+
+      if (!id) {
+        return c.json({ error: 'Identificador não encontrado' }, 400)
+      }
+
+      if (!auth.token?.sub) {
+        return c.json({ error: 'Usuário não autorizado' }, 401)
+      }
+
+      const user = await db.user.findUnique({ where: { id: auth.token.sub } })
+      if (!user) return c.json({ error: 'Usuário não autorizado' }, 401)
+
+      if (![UserRole.ADMINISTRATOR as string].includes(user.role)) {
+        return c.json({ error: 'Usuário sem autorização' }, 401)
+      }
+
+      const enterprise = await db.enterprise.findUnique({
+        where: { id },
+      })
+      if (!enterprise) {
+        return c.json({ error: 'Usuário não autorizado' }, 401)
+      }
+
+      const roles: UserRole[] = role ? [role] : ['EMPLOYEE', 'MANAGER', 'OWNER']
+
+      const data = await db.user.findMany({
+        where: {
+          role: { in: roles },
+          status: true,
+        },
+        select: { id: true, name: true, cpfCnpj: true, whatsApp: true },
+        orderBy: { name: 'asc' },
+      })
+
+      return c.json({ data }, 200)
+    },
+  )
+  .get(
+    '/enterprises/:id/owners',
+    verifyAuth(),
+    zValidator('param', z.object({ id: z.string().optional() })),
+    async (c) => {
+      const auth = c.get('authUser')
+      const { id } = c.req.valid('param')
+
+      if (!id) {
+        return c.json({ error: 'Identificador não encontrado' }, 400)
+      }
+
+      if (!auth.token?.sub) {
+        return c.json({ error: 'Usuário não autorizado' }, 401)
+      }
+
+      const user = await db.user.findUnique({ where: { id: auth.token.sub } })
+      if (!user) return c.json({ error: 'Usuário não autorizado' }, 401)
+
+      if (![UserRole.ADMINISTRATOR as string].includes(user.role)) {
+        return c.json({ error: 'Usuário sem autorização' }, 401)
+      }
+
+      const data = await db.enterprise.findUnique({
+        where: { id },
+        select: {
+          owners: { select: { user: { select: { id: true, name: true } } } },
+        },
+      })
+
+      if (!data) {
+        return c.json({ error: 'Empresa não cadastrada' }, 404)
+      }
+
+      return c.json({ data }, 200)
+    },
+  )
+  .get(
+    '/enterprises/:id',
+    verifyAuth(),
+    zValidator('param', z.object({ id: z.string().optional() })),
+    async (c) => {
+      const auth = c.get('authUser')
+      const { id } = c.req.valid('param')
+
+      if (!id) {
+        return c.json({ error: 'Identificador não encontrado' }, 400)
+      }
+
+      if (!auth.token?.sub) {
+        return c.json({ error: 'Usuário não autorizado' }, 401)
+      }
+
+      const user = await db.user.findUnique({ where: { id: auth.token.sub } })
+      if (!user) return c.json({ error: 'Usuário não autorizado' }, 401)
+
+      if (![UserRole.ADMINISTRATOR as string].includes(user.role)) {
+        return c.json({ error: 'Usuário sem autorização' }, 401)
+      }
+
+      const data = await db.enterprise.findUnique({
+        where: { id },
+        include: {
+          address: true,
+          owners: { select: { user: { select: { id: true, name: true } } } },
+        },
+      })
+
+      if (!data) {
+        return c.json({ error: 'Empresa não cadastrada' }, 404)
+      }
 
       return c.json({ data }, 200)
     },
@@ -313,6 +517,146 @@ const app = new Hono()
       }
 
       return c.json({ success: 'Usuário desbloqueado' }, 200)
+    },
+  )
+  .patch(
+    '/enterprises/:id/owners',
+    verifyAuth(),
+    zValidator('json', insertOwnerSchema),
+    zValidator('param', z.object({ id: z.string().optional() })),
+    async (c) => {
+      const auth = c.get('authUser')
+      const { id } = c.req.valid('param')
+      const validatedFields = c.req.valid('json')
+
+      if (!id) {
+        return c.json({ error: 'Identificador não encontrado' }, 400)
+      }
+
+      if (!auth.token?.sub) {
+        return c.json({ error: 'Usuário não autorizado' }, 401)
+      }
+
+      if (!validatedFields) return c.json({ error: 'Campos inválidos' }, 400)
+      const { owners } = validatedFields
+
+      const user = await db.user.findUnique({ where: { id: auth.token.sub } })
+      if (!user) return c.json({ error: 'Usuário não autorizado' }, 401)
+
+      if (![UserRole.ADMINISTRATOR as string].includes(user.role)) {
+        return c.json({ error: 'Usuário sem autorização' }, 401)
+      }
+
+      const enterprise = await db.enterprise.findUnique({
+        where: { id },
+        select: { id: true, owners: { select: { userId: true } } },
+      })
+
+      if (!enterprise) {
+        return c.json({ error: 'Empresa não cadastrada' }, 404)
+      }
+
+      const currentOwnerIds = new Set(
+        enterprise.owners.map((owner) => owner.userId),
+      )
+
+      const ownersToAdd = owners.filter(
+        (ownerId) => !currentOwnerIds.has(ownerId),
+      )
+      const ownersToRemove = Array.from(currentOwnerIds).filter(
+        (ownerId) => !owners.includes(ownerId),
+      )
+
+      await db.$transaction(async (tx) => {
+        if (ownersToRemove.length > 0) {
+          await tx.enterpriseOwner.deleteMany({
+            where: {
+              enterpriseId: id,
+              userId: { in: ownersToRemove },
+            },
+          })
+
+          await tx.user.updateMany({
+            where: {
+              id: { in: ownersToRemove },
+              selectedEnterprise: id,
+            },
+            data: {
+              selectedEnterprise: null,
+            },
+          })
+        }
+
+        if (ownersToAdd.length > 0) {
+          await tx.enterpriseOwner.createMany({
+            data: ownersToAdd.map((ownerId) => ({
+              userId: ownerId,
+              enterpriseId: id,
+            })),
+            skipDuplicates: true,
+          })
+
+          for (const ownerId of ownersToAdd) {
+            const ownerUser = await tx.user.findUnique({
+              where: { id: ownerId },
+              select: { selectedEnterprise: true },
+            })
+
+            if (!ownerUser?.selectedEnterprise) {
+              await tx.user.update({
+                where: { id: ownerId },
+                data: { selectedEnterprise: id },
+              })
+            }
+          }
+        }
+      })
+
+      return c.json({ success: 'Empresa atualizada' }, 200)
+    },
+  )
+  .patch(
+    '/enterprises/:id',
+    verifyAuth(),
+    zValidator('json', insertEnterpriseSchema),
+    zValidator('param', z.object({ id: z.string().optional() })),
+    async (c) => {
+      const auth = c.get('authUser')
+      const { id } = c.req.valid('param')
+      const validatedFields = c.req.valid('json')
+
+      if (!id) {
+        return c.json({ error: 'Identificador não encontrado' }, 400)
+      }
+
+      if (!auth.token?.sub) {
+        return c.json({ error: 'Usuário não autorizado' }, 401)
+      }
+
+      if (!validatedFields) return c.json({ error: 'Campos inválidos' }, 400)
+      const { address, ...values } = validatedFields
+
+      const user = await db.user.findUnique({ where: { id: auth.token.sub } })
+      if (!user) return c.json({ error: 'Usuário não autorizado' }, 401)
+
+      if (![UserRole.ADMINISTRATOR as string].includes(user.role)) {
+        return c.json({ error: 'Usuário sem autorização' }, 401)
+      }
+
+      await db.enterprise.update({
+        where: { id },
+        data: {
+          ...values,
+          address: {
+            upsert: {
+              create: { ...address },
+              update: { ...address },
+            },
+          },
+        },
+      })
+
+      return c.json({ success: 'Empresa atualizada' }, 200)
     },
   )
   .patch(

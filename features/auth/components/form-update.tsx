@@ -38,7 +38,6 @@ export const FormUpdate = ({
     reValidateMode: 'onChange',
     mode: 'all',
   })
-  // console.log(form.formState.errors)
 
   const handleSubmit = (values: UpdateFormValues) => {
     onSubmit(values)

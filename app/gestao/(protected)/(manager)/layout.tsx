@@ -33,6 +33,10 @@ const NAV_ITEMS: NavMainProps[] = [
             title: 'Usuários',
             url: '/gestao/usuarios',
           },
+          {
+            title: 'Empresas',
+            url: '/gestao/empresas',
+          },
         ],
       },
     ],
