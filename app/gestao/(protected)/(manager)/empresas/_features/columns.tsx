@@ -1,10 +1,10 @@
 'use client'
 
-import { InferResponseType } from 'hono'
+import type { InferResponseType } from 'hono'
 import { ArrowUpDown } from 'lucide-react'
-import { ColumnDef } from '@tanstack/react-table'
+import type { ColumnDef } from '@tanstack/react-table'
 
-import { client } from '@/lib/hono'
+import type { client } from '@/lib/hono'
 import { zipCodeMask } from '@/lib/format'
 
 import { useOpenUser } from '@/features/users/hooks/use-open-user'
@@ -24,6 +24,29 @@ export type ResponseType = InferResponseType<
   typeof client.api.manager.enterprises.$get,
   200
 >['data'][0]
+
+function OwnersCell({ owners }: { owners: ResponseType['owners'] }) {
+  const { onOpen } = useOpenUser()
+
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant="outline">Visualizar</Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="center">
+        {owners.map((user, index) => (
+          <DropdownMenuItem
+            key={index}
+            className="cursor-pointer"
+            onClick={() => onOpen(user.user.id)}
+          >
+            {user.user.name}
+          </DropdownMenuItem>
+        ))}
+      </DropdownMenuContent>
+    </DropdownMenu>
+  )
+}
 
 export const columns: ColumnDef<ResponseType>[] = [
   {
@@ -75,28 +98,7 @@ export const columns: ColumnDef<ResponseType>[] = [
     header: () => {
       return <Button variant="ghost">Proprietários</Button>
     },
-    cell: ({ row }) => {
-      const { onOpen } = useOpenUser()
-
-      return (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="outline">Visualizar</Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="center">
-            {row.original.owners.map((user, index) => (
-              <DropdownMenuItem
-                key={index}
-                className="cursor-pointer"
-                onClick={() => onOpen(user.user.id)}
-              >
-                {user.user.name}
-              </DropdownMenuItem>
-            ))}
-          </DropdownMenuContent>
-        </DropdownMenu>
-      )
-    },
+    cell: ({ row }) => <OwnersCell owners={row.original.owners} />,
   },
   {
     accessorKey: 'email',
