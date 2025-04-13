@@ -17,13 +17,13 @@ export default function HomePage() {
         <div className="space-y-6 text-center">
           <h1
             className={cn(
-              'font-medium text-6xl text-white drop-shadow-sm',
+              'font-medium text-6xl drop-shadow-sm',
               font.className,
             )}
           >
             🔐 Acesso
           </h1>
-          <p className="text-lg text-white">Simples serviço de autenticação</p>
+          <p className="text-lg">Simples serviço de autenticação</p>
           <ButtonSignIn>
             <Button variant="default" size="sm" className="mt-6">
               Entrar
