@@ -41,6 +41,8 @@ export const useCreateWorkMaterial = (workId?: string) => {
         toast.success(res.success)
       }
       queryClient.invalidateQueries({ queryKey: ['work-materials'] })
+      queryClient.invalidateQueries({ queryKey: ['works'] })
+      queryClient.invalidateQueries({ queryKey: ['summaries'] })
     },
     onError: (err) => {
       toast.error(err.message)

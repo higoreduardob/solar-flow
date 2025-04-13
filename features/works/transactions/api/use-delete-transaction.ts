@@ -37,6 +37,7 @@ export const useDeleteTransaction = (id?: string) => {
       }
       queryClient.invalidateQueries({ queryKey: ['transactions'] })
       queryClient.invalidateQueries({ queryKey: ['works'] })
+      queryClient.invalidateQueries({ queryKey: ['summaries'] })
     },
     onError: (err) => {
       toast.error(err.message)

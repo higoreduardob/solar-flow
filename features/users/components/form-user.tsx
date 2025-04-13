@@ -86,57 +86,59 @@ export const FormUser = ({
         className="flex flex-col gap-2"
       >
         <div className="flex items-center justify-between">
-          {isChangeRole && (
-            <FormField
-              control={form.control}
-              name="role"
-              render={({ field }) => (
-                <FormItem className="w-full">
-                  <FormLabel>Privilégio do usuário</FormLabel>
-                  <FormControl>
-                    <RadioGroup
-                      onValueChange={(value) => {
-                        field.onChange(value)
-                      }}
-                      defaultValue={field.value}
-                      className="flex items-center gap-3"
-                    >
-                      <FormItem>
-                        <FormControl>
-                          <RadioGroupItem
-                            value={UserRole.MANAGER}
-                            className="hidden"
-                          />
-                        </FormControl>
-                        <FormLabel className="cursor-pointer">
-                          <Badge variant={isManager ? 'default' : 'outline'}>
-                            Gerente
-                          </Badge>
-                        </FormLabel>
-                      </FormItem>
-                      <FormItem>
-                        <FormControl>
-                          <RadioGroupItem
-                            value={UserRole.EMPLOYEE}
-                            className="hidden"
-                          />
-                        </FormControl>
-                        <FormLabel className="cursor-pointer">
-                          <Badge variant={isManager ? 'outline' : 'default'}>
-                            Colaborador
-                          </Badge>
-                        </FormLabel>
-                      </FormItem>
-                    </RadioGroup>
-                  </FormControl>
-                  <FormMessage />
-                  <FormDescription className="!line-clamp-1">
-                    Nível de acesso do usuário
-                  </FormDescription>
-                </FormItem>
-              )}
-            />
-          )}
+          {isChangeRole &&
+            watchRole !== 'ADMINISTRATOR' &&
+            watchRole !== 'OWNER' && (
+              <FormField
+                control={form.control}
+                name="role"
+                render={({ field }) => (
+                  <FormItem className="w-full">
+                    <FormLabel>Privilégio do usuário</FormLabel>
+                    <FormControl>
+                      <RadioGroup
+                        onValueChange={(value) => {
+                          field.onChange(value)
+                        }}
+                        defaultValue={field.value}
+                        className="flex items-center gap-3"
+                      >
+                        <FormItem>
+                          <FormControl>
+                            <RadioGroupItem
+                              value={UserRole.MANAGER}
+                              className="hidden"
+                            />
+                          </FormControl>
+                          <FormLabel className="cursor-pointer">
+                            <Badge variant={isManager ? 'default' : 'outline'}>
+                              Gerente
+                            </Badge>
+                          </FormLabel>
+                        </FormItem>
+                        <FormItem>
+                          <FormControl>
+                            <RadioGroupItem
+                              value={UserRole.EMPLOYEE}
+                              className="hidden"
+                            />
+                          </FormControl>
+                          <FormLabel className="cursor-pointer">
+                            <Badge variant={isManager ? 'outline' : 'default'}>
+                              Colaborador
+                            </Badge>
+                          </FormLabel>
+                        </FormItem>
+                      </RadioGroup>
+                    </FormControl>
+                    <FormMessage />
+                    <FormDescription className="!line-clamp-1">
+                      Nível de acesso do usuário
+                    </FormDescription>
+                  </FormItem>
+                )}
+              />
+            )}
           {id && (
             <div className="ml-auto flex justify-end">
               <FormField
@@ -286,7 +288,6 @@ export const FormUser = ({
                 <FormControl>
                   <Input
                     {...field}
-                    disabled
                     value={field.value || ''}
                     placeholder="Bairro"
                   />

@@ -178,9 +178,11 @@ const app = new Hono().get(
         SELECT 
           ds.date,
           COALESCE(SUM(CASE WHEN ct.amount > 0 THEN ct.amount ELSE 0 END), 0)::float as daily_incomes,
-          COALESCE(SUM(CASE WHEN ct.amount < 0 THEN ABS(ct.amount) ELSE 0 END), 0)::float as daily_expenses,
+          COALESCE(SUM(CASE WHEN ct.amount < 0 THEN ABS(ct.amount) ELSE 0 END), 0)::float + 
+            COALESCE((SELECT SUM(cm.total_amount) FROM current_materials cm WHERE DATE(cm.created_at) = ds.date), 0)::float as daily_expenses,
           COALESCE(SUM(CASE WHEN ct.amount > 0 THEN ct.amount ELSE 0 END), 0)::float - 
-            COALESCE(SUM(CASE WHEN ct.amount < 0 THEN ABS(ct.amount) ELSE 0 END), 0)::float as daily_remaining
+            (COALESCE(SUM(CASE WHEN ct.amount < 0 THEN ABS(ct.amount) ELSE 0 END), 0)::float + 
+            COALESCE((SELECT SUM(cm.total_amount) FROM current_materials cm WHERE DATE(cm.created_at) = ds.date), 0)::float) as daily_remaining
         FROM date_series ds
         LEFT JOIN current_transactions ct ON DATE(ct.created_at) = ds.date
         GROUP BY ds.date

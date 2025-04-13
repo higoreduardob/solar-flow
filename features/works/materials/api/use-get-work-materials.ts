@@ -6,7 +6,7 @@ import { convertAmountFromMiliunits } from '@/lib/utils'
 export const useGetWorkMaterials = (id?: string) => {
   const query = useQuery({
     enabled: !!id,
-    queryKey: ['works-materials', id],
+    queryKey: ['work-materials', id],
     queryFn: async () => {
       const response = await client.api['works'][':id']['materials'].$get({
         param: { id },

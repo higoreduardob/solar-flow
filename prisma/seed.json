@@ -1,0 +1,36 @@
+{
+  "users": [
+    {
+      "id": "cm9fmk3cu0000vvpbwgaj7f12",
+      "name": "Higor",
+      "email": "bhigoreduardo@gmail.com",
+      "whatsApp": "27998311970",
+      "cpfCnpj": "13620787786",
+      "role": "ADMINISTRATOR",
+      "status": true,
+      "password": "$2b$10$lGmtFpFx2XM/TK.Rw.piVObL5OERssXVHwfw0VaimQcrjkvmCAp3a",
+      "hasAcceptedTerms": true,
+      "isTwoFactorEnabled": false,
+      "createdAt": "2025-04-13T12:32:12.798Z",
+      "updatedAt": "2025-04-13T12:33:39.317Z",
+      "ownerId": null,
+      "enterpriseBelongId": null,
+      "selectedEnterprise": null
+    }
+  ],
+  "addresses": [
+    {
+      "id": "cm9fmly450000vv5mqouhvbf4",
+      "zipCode": "29700857",
+      "street": "Rua F",
+      "neighborhood": "Bela Vista",
+      "city": "Colatina",
+      "state": "ES",
+      "number": "",
+      "complement": "",
+      "userId": "cm9fmk3cu0000vvpbwgaj7f12",
+      "enterpriseId": null,
+      "workId": null
+    }
+  ]
+}

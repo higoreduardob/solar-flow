@@ -81,7 +81,7 @@ export const sendPasswordSignInEmail = async (
   email: string,
   password: string
 ) => {
-  const url = `${process.env.NEXT_PUBLIC_APP_URL}/entrar`
+  const url = `${process.env.NEXT_PUBLIC_APP_URL}/plataforma/entrar`
 
   await resend.emails.send({
     from: 'onboarding@resend.dev',
