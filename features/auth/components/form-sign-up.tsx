@@ -175,7 +175,6 @@ export const FormSignUp = ({
                 <FormControl>
                   <Input
                     {...field}
-                    disabled
                     value={field.value || ''}
                     placeholder="Bairro"
                   />
@@ -251,7 +250,6 @@ export const FormSignUp = ({
                 <FormControl>
                   <Input
                     {...field}
-                    disabled
                     value={field.value || ''}
                     placeholder="Rua"
                   />
