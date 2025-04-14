@@ -188,7 +188,6 @@ export const FormEnterprise = ({
                   <FormControl>
                     <Input
                       {...field}
-                      disabled
                       value={field.value || ''}
                       placeholder="Bairro"
                     />
@@ -264,7 +263,6 @@ export const FormEnterprise = ({
                   <FormControl>
                     <Input
                       {...field}
-                      disabled
                       value={field.value || ''}
                       placeholder="Rua"
                     />
