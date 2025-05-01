@@ -2,13 +2,13 @@
   "users": [
     {
       "id": "cm9fmk3cu0000vvpbwgaj7f12",
-      "name": "Higor",
-      "email": "bhigoreduardo@gmail.com",
-      "whatsApp": "27998311970",
-      "cpfCnpj": "13620787786",
+      "name": "Adm",
+      "email": "adm@email.com",
+      "whatsApp": "11999999999",
+      "cpfCnpj": "11111111111",
       "role": "ADMINISTRATOR",
       "status": true,
-      "password": "$2b$10$lGmtFpFx2XM/TK.Rw.piVObL5OERssXVHwfw0VaimQcrjkvmCAp3a",
+      "password": "$2a$10$HcwGZYYJWLx0ev9kbcWx2OyYr.l5XvZcFNbJPswysfCw4BRL5v8Mu",
       "hasAcceptedTerms": true,
       "isTwoFactorEnabled": false,
       "createdAt": "2025-04-13T12:32:12.798Z",
