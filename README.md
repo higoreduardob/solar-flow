@@ -4,6 +4,8 @@
 
 Sistema completo para obras de energia solar, ideal para aplicações modernas com integração a diversos serviços em nuvem e autenticação segura.
 
+## :rocket: [Solar Flow](https://solar-flow-pi.vercel.app/)
+
 ## :fire: Run
 
 - Database (Postgres): `docker compose up -d`
